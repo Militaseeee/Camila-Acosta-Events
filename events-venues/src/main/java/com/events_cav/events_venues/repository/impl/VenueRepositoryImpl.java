@@ -30,7 +30,9 @@ public class VenueRepositoryImpl implements DataVenueRepository {
 
     @Override
     public Optional<Venue> findById(Long id) {
-        return Optional.empty();
+        return venues.stream()
+                .filter(v -> v.id_venue().equals(id))
+                .findFirst();
     }
 
     @Override
@@ -45,6 +47,6 @@ public class VenueRepositoryImpl implements DataVenueRepository {
 
     @Override
     public void deleteById(Long id) {
-
+        
     }
 }
