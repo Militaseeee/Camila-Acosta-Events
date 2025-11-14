@@ -41,12 +41,13 @@ public class VenueRepositoryImpl implements DataVenueRepository {
     }
 
     @Override
-    public void update(Long id, Venue venue) {
-
+    public void update(Long id, Venue venueUpdate) {
+        deleteById(id); // Borramos el viejo
+        venues.add(venueUpdate); // Agregamos el nuevo (que ya debe traer el ID)
     }
 
     @Override
     public void deleteById(Long id) {
-        
+        venues.removeIf(v -> v.id_venue().equals(id));
     }
 }

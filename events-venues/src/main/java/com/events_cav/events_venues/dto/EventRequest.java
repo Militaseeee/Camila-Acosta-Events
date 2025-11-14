@@ -8,7 +8,8 @@ public record EventRequest(
         String name,
 
         @NotBlank(message = "The date is mandatory")
+        String date,
 
         @NotNull(message = "Venue ID is required")
-        Long id_venue
+        Long idVenue
 ) {}

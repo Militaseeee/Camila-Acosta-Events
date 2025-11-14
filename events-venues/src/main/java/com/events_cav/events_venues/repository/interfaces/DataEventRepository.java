@@ -9,6 +9,6 @@ public interface DataEventRepository {
     Event save(Event event);
     Optional<Event> findById(Long id);
     List<Event> findAll();
-    void deleteById(Long id);
     void update(Long id, Event event);
+    void deleteById(Long id);
 }
