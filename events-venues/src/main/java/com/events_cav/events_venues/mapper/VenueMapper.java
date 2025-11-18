@@ -1,7 +1,7 @@
 package com.events_cav.events_venues.mapper;
 
-import com.events_cav.events_venues.dto.VenueRequest;
-import com.events_cav.events_venues.dto.VenueResponse;
+import com.events_cav.events_venues.dto.request.VenueRequest;
+import com.events_cav.events_venues.dto.response.VenueResponse;
 import com.events_cav.events_venues.model.Venue;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
