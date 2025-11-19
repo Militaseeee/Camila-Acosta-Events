@@ -12,12 +12,12 @@ public interface VenueMapper {
 
     VenueMapper INSTANCE = Mappers.getMapper(VenueMapper.class);
 
-    // DTO Request, para traer los datos para crear
-    @Mapping(target = "id_venue", ignore = true)
+    // Request -> Entity
+    // Ignoramos 'id' porque se genera automáticamente en la Base de Datos
+    @Mapping(target = "id", ignore = true)
     Venue toVenue(VenueRequest request);
 
-    // DTO Response, Acá Mapeo el ID de la BD al DTO
-    @Mapping(target = "id", source = "id_venue")
+    // Como los campos se llaman igual (id, name, location),
+    // no hace falta poner @Mapping ´prque MapStruct lo hace solo
     VenueResponse toVenueResponse(Venue venue);
-
 }

@@ -1,14 +1,12 @@
 package com.events_cav.events_venues.repository.interfaces;
 
 import com.events_cav.events_venues.model.Venue;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-import java.util.Optional;
+// EXTENDS JpaRepository: Esto es lo que conecta con la BD -> H2
+public interface DataVenueRepository extends JpaRepository<Venue, Long> {
 
-public interface DataVenueRepository {
-    Venue save(Venue venue);
-    Optional<Venue> findById(Long id);
-    List<Venue> findAll();
-    void update(Long id, Venue venue);
-    void deleteById(Long id);
+    // Declaro los métodos mágicos para que JPA los cree
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
 }

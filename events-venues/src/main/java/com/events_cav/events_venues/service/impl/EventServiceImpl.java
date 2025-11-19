@@ -2,93 +2,95 @@ package com.events_cav.events_venues.service.impl;
 
 import com.events_cav.events_venues.dto.request.EventRequest;
 import com.events_cav.events_venues.dto.response.EventResponse;
-import com.events_cav.events_venues.dto.response.VenueResponse;
+import com.events_cav.events_venues.exception.BadRequestException;
 import com.events_cav.events_venues.exception.ResourceNotFoundException;
 import com.events_cav.events_venues.mapper.EventMapper;
-import com.events_cav.events_venues.mapper.VenueMapper;
 import com.events_cav.events_venues.model.Event;
 import com.events_cav.events_venues.model.Venue;
-import com.events_cav.events_venues.repository.interfaces.DataEventRepository;
-import com.events_cav.events_venues.repository.interfaces.DataVenueRepository;
+import com.events_cav.events_venues.repository.interfaces.IEventRepository;
+import com.events_cav.events_venues.repository.interfaces.IVenueRepository;
 import com.events_cav.events_venues.service.interfaces.IEventService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class EventServiceImpl implements IEventService {
 
-    private final DataEventRepository eventRepository;
-    private final DataVenueRepository venueRepository; // Necesario para validar y armar respuesta
+    private final IEventRepository eventRepository;
+    private final IVenueRepository venueRepository; // Necesario para buscar el Venue al crear/editar
 
-    public EventServiceImpl(DataEventRepository eventRepository, DataVenueRepository venueRepository) {
+    public EventServiceImpl(IEventRepository eventRepository, IVenueRepository venueRepository) {
         this.eventRepository = eventRepository;
         this.venueRepository = venueRepository;
     }
 
     @Override
     public EventResponse create(EventRequest request) {
-        // Valido que el Venue exista
-        Venue venue = venueRepository.findById(request.idVenue())
-                .orElseThrow(() -> new ResourceNotFoundException("The Venue with ID " + request.idVenue() + " does not exist"));
+        // Validar nombre duplicado
+        if (eventRepository.existsByName(request.getName())) {
+            throw new BadRequestException("An event with name '" + request.getName() + "' already exists.");
+        }
 
-        // Guardar el evento
+        // Buscar el Venue real en la BD
+        Venue venue = venueRepository.findById(request.getIdVenue())
+                .orElseThrow(() -> new ResourceNotFoundException("The Venue with ID " + request.getIdVenue() + " does not exist"));
+
+        // Convertir DTO a Entidad
         Event event = EventMapper.INSTANCE.toEvent(request);
+
+        // Asigna el objeto venue al evento es importante con JPA
+        event.setVenue(venue);
+
+        // Guardar
         Event savedEvent = eventRepository.save(event);
 
-        // Construir la respuesta anidada (Evento + VenueResponse)
-        VenueResponse venueResponse = VenueMapper.INSTANCE.toVenueResponse(venue);
-        return EventMapper.INSTANCE.toEventResponse(savedEvent, venueResponse);
+        // Convertir a Response (El Mapper ahora maneja el Venue anidado automáticamente)
+        return EventMapper.INSTANCE.toEventResponse(savedEvent);
     }
 
     @Override
     public EventResponse getById(Long id) {
-        // Busco el evento
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + id));
 
-        // Busco el Venue asociado al evento (usando el id_venue que tiene el evento)
-        Venue venue = venueRepository.findById(event.id_venue())
-                .orElseThrow(() -> new ResourceNotFoundException("Integrity Error: The associated Venue was not found"));
-
-        // Mapear ambas partes
-        VenueResponse venueResponse = VenueMapper.INSTANCE.toVenueResponse(venue);
-        return EventMapper.INSTANCE.toEventResponse(event, venueResponse);
+        return EventMapper.INSTANCE.toEventResponse(event);
     }
 
     @Override
     public List<EventResponse> getAll() {
         return eventRepository.findAll().stream()
-                .map(event -> {
-                    Venue venue = venueRepository.findById(event.id_venue()).orElse(null);
-                    // Si el venue es null, el mapper lo manejará
-                    VenueResponse venueResponse = (venue != null) ? VenueMapper.INSTANCE.toVenueResponse(venue) : null;
-
-                    return EventMapper.INSTANCE.toEventResponse(event, venueResponse);
-                })
+                .map(EventMapper.INSTANCE::toEventResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public EventResponse update(Long id, EventRequest request) {
-        // Verifico Evento existe
-        if (eventRepository.findById(id).isEmpty()) {
-            throw new ResourceNotFoundException("Event not found with ID: " + id);
+        // Buscar Evento
+        Event currentEvent = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with ID: " + id));
+
+        // Validar nombre duplicado
+        if (eventRepository.existsByNameAndIdNot(request.getName(), id)) {
+            throw new BadRequestException("An event with name '" + request.getName() + "' already exists.");
         }
 
-        // Verificamos que el nuevo Venue exista
-        Venue venue = venueRepository.findById(request.idVenue())
+        // Buscar el nuevo Venue (o el mismo)
+        Venue venue = venueRepository.findById(request.getIdVenue())
                 .orElseThrow(() -> new ResourceNotFoundException("The Venue destination does not exist"));
 
-        // Actualizar (Delete + Add en repositorio)
-        Event eventActualizado = new Event(id, request.name(), request.date(), request.idVenue());
-        eventRepository.update(id, eventActualizado);
+        // Actualizar datos
+        currentEvent.setName(request.getName());
+        currentEvent.setDate(request.getDate());
+        currentEvent.setVenue(venue); // Asignamos el objeto Venue completo
 
-        // respuesta
-        VenueResponse venueResponse = VenueMapper.INSTANCE.toVenueResponse(venue);
-        return EventMapper.INSTANCE.toEventResponse(eventActualizado, venueResponse);
+        // Guardar cambios
+        Event updatedEvent = eventRepository.save(currentEvent);
 
+        return EventMapper.INSTANCE.toEventResponse(updatedEvent);
     }
 
     @Override
