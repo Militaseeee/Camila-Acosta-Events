@@ -4,6 +4,7 @@ import com.events_cav.events_venues.dto.request.VenueRequest;
 import com.events_cav.events_venues.dto.response.VenueResponse;
 import com.events_cav.events_venues.entity.VenueEntity;
 import com.events_cav.events_venues.exception.BadRequestException;
+import com.events_cav.events_venues.exception.ResourceConflictException;
 import com.events_cav.events_venues.exception.ResourceNotFoundException;
 import com.events_cav.events_venues.mapper.VenueMapper;
 import com.events_cav.events_venues.model.VenueModel;
@@ -29,7 +30,7 @@ public class VenueServiceImpl implements IVenueService {
     public VenueResponse create(VenueRequest request) {
         // La validación sigue usando el Repositorio, que trabaja con el nombre (String)
         if (venueRepository.existsByName(request.getName())) {
-            throw new BadRequestException("A venue with name '" + request.getName() + "' already exists");
+            throw new ResourceConflictException("A venue with name '" + request.getName() + "' already exists");
         }
 
         // DTO Request -> MODEL (Objeto de Negocio)

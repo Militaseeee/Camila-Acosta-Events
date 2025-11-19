@@ -5,6 +5,7 @@ import com.events_cav.events_venues.dto.response.EventResponse;
 import com.events_cav.events_venues.entity.EventEntity;
 import com.events_cav.events_venues.entity.VenueEntity;
 import com.events_cav.events_venues.exception.BadRequestException;
+import com.events_cav.events_venues.exception.ResourceConflictException;
 import com.events_cav.events_venues.exception.ResourceNotFoundException;
 import com.events_cav.events_venues.mapper.EventMapper;
 import com.events_cav.events_venues.mapper.VenueMapper; // Necesario para mapear VenueEntity a VenueModel
@@ -103,7 +104,7 @@ public class EventServiceImpl implements IEventService {
 
         // Validar nombre duplicado
         if (eventRepository.existsByNameAndIdNot(request.getName(), id)) {
-            throw new BadRequestException("An event with name '" + request.getName() + "' already exists");
+            throw new ResourceConflictException("An event with name '" + request.getName() + "' already exists");
         }
 
         // Buscar el nuevo Venue (Entity)

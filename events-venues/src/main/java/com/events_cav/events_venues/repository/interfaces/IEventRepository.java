@@ -14,7 +14,6 @@ public interface IEventRepository {
 
     // En esta parte no utilizamos findAll() List, sino este con Paginación y Filtros
     Page<EventEntity> findAll(Pageable pageable, String city, LocalDate date);
-    List<EventEntity> findAll();
 
     void deleteById(Long id);
 

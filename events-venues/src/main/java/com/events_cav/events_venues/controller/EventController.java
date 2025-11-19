@@ -4,8 +4,8 @@ import com.events_cav.events_venues.dto.request.EventRequest;
 import com.events_cav.events_venues.dto.response.EventResponse;
 import com.events_cav.events_venues.service.interfaces.IEventService;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page; // Importación correcta
-import org.springframework.data.domain.Pageable; // Importación correcta
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
