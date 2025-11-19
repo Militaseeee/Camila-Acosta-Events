@@ -2,10 +2,11 @@ package com.events_cav.events_venues.service.impl;
 
 import com.events_cav.events_venues.dto.request.VenueRequest;
 import com.events_cav.events_venues.dto.response.VenueResponse;
+import com.events_cav.events_venues.entity.VenueEntity;
 import com.events_cav.events_venues.exception.BadRequestException;
 import com.events_cav.events_venues.exception.ResourceNotFoundException;
 import com.events_cav.events_venues.mapper.VenueMapper;
-import com.events_cav.events_venues.model.Venue;
+import com.events_cav.events_venues.model.VenueModel;
 import com.events_cav.events_venues.repository.interfaces.IVenueRepository;
 import com.events_cav.events_venues.service.interfaces.IVenueService;
 import org.springframework.stereotype.Service;
@@ -15,10 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional // Estosirve para asegurar la integridad en BD
+@Transactional
 public class VenueServiceImpl implements IVenueService {
 
-    private final IVenueRepository venueRepository; // Inyectamos el Wrapper
+    private final IVenueRepository venueRepository;
 
     public VenueServiceImpl(IVenueRepository venueRepository) {
         this.venueRepository = venueRepository;
@@ -26,52 +27,77 @@ public class VenueServiceImpl implements IVenueService {
 
     @Override
     public VenueResponse create(VenueRequest request) {
-        // Validar nombre duplicado
+        // La validación sigue usando el Repositorio, que trabaja con el nombre (String)
         if (venueRepository.existsByName(request.getName())) {
             throw new BadRequestException("A venue with name '" + request.getName() + "' already exists");
         }
 
-        // Convertir y Guardar
-        Venue venue = VenueMapper.INSTANCE.toVenue(request);
-        Venue savedVenue = venueRepository.save(venue);
+        // DTO Request -> MODEL (Objeto de Negocio)
+        VenueModel model = VenueMapper.INSTANCE.toVenueModel(request);
 
-        return VenueMapper.INSTANCE.toVenueResponse(savedVenue);
+        // MODEL -> ENTITY (Para guardar)
+        VenueEntity entityToSave = VenueMapper.INSTANCE.toVenueEntity(model);
+        VenueEntity savedEntity = venueRepository.save(entityToSave);
+
+        // ENTITY -> MODEL (Actualizar ID)
+        VenueModel savedModel = VenueMapper.INSTANCE.toVenueModel(savedEntity);
+
+        // MODEL -> DTO Response (Para devolver)
+        return VenueMapper.INSTANCE.toVenueResponse(savedModel);
     }
 
     @Override
     public VenueResponse getById(Long id) {
-        Venue venue = venueRepository.findById(id)
+        // Obtener la Entity
+        VenueEntity entity = venueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venue not found with ID: " + id));
 
-        return VenueMapper.INSTANCE.toVenueResponse(venue);
+        // Convertir Entity -> Model
+        VenueModel model = VenueMapper.INSTANCE.toVenueModel(entity);
+
+        // Convertir Model -> Response
+        return VenueMapper.INSTANCE.toVenueResponse(model);
     }
 
     @Override
     public List<VenueResponse> getAll() {
-        return venueRepository.findAll().stream()
+        // Obtener List<Entity>
+        List<VenueEntity> entities = venueRepository.findAll();
+
+        // Mapear List<Entity> -> List<Model> -> List<Response>
+        return entities.stream()
+                .map(VenueMapper.INSTANCE::toVenueModel)
                 .map(VenueMapper.INSTANCE::toVenueResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     public VenueResponse update(Long id, VenueRequest request) {
-        // Buscar existente
-        Venue currentVenue = venueRepository.findById(id)
+        // Buscar existente (Entity)
+        VenueEntity currentEntity = venueRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Venue not found with ID: " + id));
 
-        // Validar nombre duplicado (excluyendo el ID actual)
+        // Validar nombre duplicado
         if (venueRepository.existsByNameAndIdNot(request.getName(), id)) {
             throw new BadRequestException("A venue with name '" + request.getName() + "' already exists");
         }
 
-        // Actualizar campos
-        currentVenue.setName(request.getName());
-        currentVenue.setLocation(request.getLocation());
+        // Convertir a Model para trabajar con él (y conservar el ID)
+        VenueModel currentModel = VenueMapper.INSTANCE.toVenueModel(currentEntity);
 
-        // Guardar (JPA hace el update porque tiene ID)
-        Venue updatedVenue = venueRepository.save(currentVenue);
+        // Actualizar campos del Model con los datos del Request
+        currentModel.setName(request.getName());
+        currentModel.setLocation(request.getLocation());
 
-        return VenueMapper.INSTANCE.toVenueResponse(updatedVenue);
+        // Convertir Model -> Entity (Para guardar/update)
+        VenueEntity entityToUpdate = VenueMapper.INSTANCE.toVenueEntity(currentModel);
+
+        // Guardar cambios
+        VenueEntity updatedEntity = venueRepository.save(entityToUpdate);
+
+        // Convertir Entity -> Model -> Response
+        VenueModel updatedModel = VenueMapper.INSTANCE.toVenueModel(updatedEntity);
+        return VenueMapper.INSTANCE.toVenueResponse(updatedModel);
     }
 
     @Override

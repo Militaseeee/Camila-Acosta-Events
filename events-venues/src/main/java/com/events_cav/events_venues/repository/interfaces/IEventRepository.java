@@ -1,13 +1,21 @@
 package com.events_cav.events_venues.repository.interfaces;
 
-import com.events_cav.events_venues.model.Event;
+import com.events_cav.events_venues.entity.EventEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 public interface IEventRepository {
-    Event save(Event event);
-    Optional<Event> findById(Long id);
-    List<Event> findAll();
+    EventEntity save(EventEntity event);
+    Optional<EventEntity> findById(Long id);
+
+    // En esta parte no utilizamos findAll() List, sino este con Paginación y Filtros
+    Page<EventEntity> findAll(Pageable pageable, String city, LocalDate date);
+    List<EventEntity> findAll();
+
     void deleteById(Long id);
 
     // Validaciones

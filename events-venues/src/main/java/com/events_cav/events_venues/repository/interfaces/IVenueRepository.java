@@ -1,13 +1,14 @@
 package com.events_cav.events_venues.repository.interfaces;
 
-import com.events_cav.events_venues.model.Venue;
+import com.events_cav.events_venues.entity.VenueEntity;
+
 import java.util.List;
 import java.util.Optional;
 
 public interface IVenueRepository {
-    Venue save(Venue venue);
-    Optional<Venue> findById(Long id);
-    List<Venue> findAll();
+    VenueEntity save(VenueEntity venue);
+    Optional<VenueEntity> findById(Long id);
+    List<VenueEntity> findAll();
     void deleteById(Long id);
 
     boolean existsByName(String name);

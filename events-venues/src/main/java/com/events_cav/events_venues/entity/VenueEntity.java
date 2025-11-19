@@ -1,4 +1,4 @@
-package com.events_cav.events_venues.model;
+package com.events_cav.events_venues.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor // Constructor vacío
 @AllArgsConstructor // Constructor con todos los atributos
-public class Venue {
+public class VenueEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto incremental

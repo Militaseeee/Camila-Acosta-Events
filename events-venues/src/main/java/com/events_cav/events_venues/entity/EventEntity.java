@@ -1,4 +1,4 @@
-package com.events_cav.events_venues.model;
+package com.events_cav.events_venues.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor // Constructor vacío
 @AllArgsConstructor // Constructor con todos los atributos
-public class Event {
+public class EventEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,6 +26,6 @@ public class Event {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_venue", nullable = false)
-    private Venue venue;
+    private VenueEntity venue;
 
 }
