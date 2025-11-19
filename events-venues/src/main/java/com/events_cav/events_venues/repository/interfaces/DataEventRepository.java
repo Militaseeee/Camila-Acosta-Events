@@ -1,14 +1,12 @@
 package com.events_cav.events_venues.repository.interfaces;
 
-import com.events_cav.events_venues.model.Event;
+import com.events_cav.events_venues.entity.EventEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-import java.util.List;
-import java.util.Optional;
+public interface DataEventRepository extends JpaRepository<EventEntity, Long>, JpaSpecificationExecutor<EventEntity> {
 
-public interface DataEventRepository {
-    Event save(Event event);
-    Optional<Event> findById(Long id);
-    List<Event> findAll();
-    void update(Long id, Event event);
-    void deleteById(Long id);
+    boolean existsByName(String name);
+    boolean existsByNameAndIdNot(String name, Long id);
+
 }

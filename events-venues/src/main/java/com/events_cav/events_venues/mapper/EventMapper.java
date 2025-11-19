@@ -1,28 +1,31 @@
 package com.events_cav.events_venues.mapper;
 
-import com.events_cav.events_venues.dto.EventRequest;
-import com.events_cav.events_venues.dto.EventResponse;
-import com.events_cav.events_venues.dto.VenueResponse;
-import com.events_cav.events_venues.model.Event;
+import com.events_cav.events_venues.dto.request.EventRequest;
+import com.events_cav.events_venues.dto.response.EventResponse;
+import com.events_cav.events_venues.entity.EventEntity;
+import com.events_cav.events_venues.model.EventModel; // <-- NUEVO IMPORT DEL MODELO
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper
+// El uses = VenueMapper.class ahora mapeará VenueModel ↔ VenueResponse/VenueEntity
+@Mapper(uses = VenueMapper.class)
 public interface EventMapper {
 
     EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
 
-    // DTO Request,  lo convierte a event y se mapea el id_venue
-    @Mapping(target = "id_event", ignore = true)
-    @Mapping(target = "id_venue", source = "idVenue")
-    Event toEvent(EventRequest request);
+    // DTO Request -> MODEL (Para crear el objeto de negocio en el servicio)
+    // El Venue se mapea a NULL, y el Servicio se encarga de buscarlo usando idVenue
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "venue", ignore = true)
+    EventModel toEventModel(EventRequest request);
 
-    // Entidad + DTO (VenueResponse) -> DTO (EventResponse)
-    // Aquí pasamos el DTO del venue (VenueResponse) para que se meta dentro de la respuesta final
-    @Mapping(target = "id", source = "event.id_event")
-    @Mapping(target = "name", source = "event.name")
-    @Mapping(target = "date", source = "event.date")
-    @Mapping(target = "venue", source = "venueResponse") // Aquí inyectamos el DTO del Venue
-    EventResponse toEventResponse(Event event, VenueResponse venueResponse);
+    // MODEL -> DTO Response (Para devolver al controlador)
+    EventResponse toEventResponse(EventModel model);
+
+    // MODEL -> ENTITY (Para guardar en la BD)
+    EventEntity toEventEntity(EventModel model);
+
+    // ENTITY -> MODEL (Para devolver desde el repositorio al servicio)
+    EventModel toEventModel(EventEntity entity);
 }

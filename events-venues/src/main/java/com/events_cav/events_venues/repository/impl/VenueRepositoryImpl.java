@@ -1,53 +1,47 @@
 package com.events_cav.events_venues.repository.impl;
 
-import com.events_cav.events_venues.model.Venue;
+import com.events_cav.events_venues.entity.VenueEntity;
 import com.events_cav.events_venues.repository.interfaces.DataVenueRepository;
+import com.events_cav.events_venues.repository.interfaces.IVenueRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Repository
-public class VenueRepositoryImpl implements DataVenueRepository {
+@RequiredArgsConstructor // Lombok inyecta el dataVenueRepository automáticamente
+public class VenueRepositoryImpl implements IVenueRepository {
 
-    // Acá guardo los datos en un array
-    private final List<Venue> venues = new ArrayList<>();
-
-    // Genera id en orden
-    private final AtomicLong idGenerator = new AtomicLong(1);
+    private final DataVenueRepository jpaRepository; // Inyectamos la interfaz de JPA
 
     @Override
-    public Venue save(Venue venue) {
-
-        Long newId = idGenerator.getAndIncrement(); // Se debe generar el ID nuevo
-        Venue newVenue = new Venue(newId, venue.name(), venue.location()); // Acá creamos un objeto nuevo asignado por el ID
-
-        venues.add(newVenue);
-        return newVenue;
+    public VenueEntity save(VenueEntity venue) {
+        return jpaRepository.save(venue);
     }
 
     @Override
-    public Optional<Venue> findById(Long id) {
-        return venues.stream()
-                .filter(v -> v.id_venue().equals(id))
-                .findFirst();
+    public Optional<VenueEntity> findById(Long id) {
+        return jpaRepository.findById(id);
     }
 
     @Override
-    public List<Venue> findAll() {
-        return new ArrayList<>(venues);
-    }
-
-    @Override
-    public void update(Long id, Venue venueUpdate) {
-        deleteById(id); // Borramos el viejo
-        venues.add(venueUpdate); // Agregamos el nuevo (que ya debe traer el ID)
+    public List<VenueEntity> findAll() {
+        return jpaRepository.findAll();
     }
 
     @Override
     public void deleteById(Long id) {
-        venues.removeIf(v -> v.id_venue().equals(id));
+        jpaRepository.deleteById(id);
+    }
+
+    @Override
+    public boolean existsByName(String name) {
+        return jpaRepository.existsByName(name);
+    }
+
+    @Override
+    public boolean existsByNameAndIdNot(String name, Long id) {
+        return jpaRepository.existsByNameAndIdNot(name, id);
     }
 }
