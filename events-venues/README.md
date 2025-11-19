@@ -8,12 +8,17 @@ Interactive API documentation is automatically generated using **OpenAPI (Swagge
 
 ## 🚀 Main Features
 
-- **Full CRUD**: Create, read, update, and delete Events and Venues.
-- **Layered Architecture**: Clear separation of responsibilities (Controller, Service, Repository, Model).
-- **In-Memory Persistence**: Uses `ArrayList` and `AtomicLong` to simulate a database.
-- **DTOs & Mappers**: Efficient entity-to-DTO transformation using **MapStruct**.
-- **Entity Relationship**: Event → Venue (an event happens at one venue).
-- **Error Handling**: Custom exceptions with meaningful HTTP status codes (404, 400).
+- **Full CRUD** (Events & Venues).
+- **Three-Layer Architecture**: Clear separation of concerns (Controller ↔ Service ↔ Repository).
+- **Domain Layer Isolation**: Uses separate **Model** (Domain) and **Entity** (Persistence) packages.
+- **Persistence**: Implemented using **Spring Data JPA** and **H2 Database** (in-memory).
+- **Task 3: Paging & Filtering**:
+    - **GET /events** supports pagination (`page`, `size`, `sort`).
+    - **Optional filters** by `city` and `date` via URL parameters.
+- **Task 4: Global Error Handling**: Custom exceptions captured via `@ControllerAdvice`.
+    - Returns meaningful HTTP status codes: **404 (Not Found), 400 (Bad Request), 409 (Conflict)** (Recommended for duplicates).
+- **Validation**: Includes JSR-303 (Jakarta Validation) for data integrity.
+- **DTOs & Mappers**: Efficient object transformation using **MapStruct**.
 - **Interactive Documentation**: Fully browsable API with Swagger UI.
 
 ---
@@ -21,7 +26,9 @@ Interactive API documentation is automatically generated using **OpenAPI (Swagge
 ## 🛠️ Technologies Used
 
 - **Java 21**
-- **Spring Boot 3** (Web, Validation)
+- **Spring Boot 3** (Web, Data JPA, Validation)
+- **Spring Data JPA**
+- **H2 Database**
 - **Maven**
 - **MapStruct**
 - **Lombok**
@@ -41,19 +48,26 @@ src/main/java/com/events_cav/events_venues
 │   ├── EventController.java
 │   └── VenueController.java
 ├── dto/                                    → Data transfer objects (inputs/outputs)
-│   ├── EventRequest.java
-│   ├── EventResponse.java
-│   ├── VenueRequest.java
-│   └── VenueResponse.java
+│   ├── request
+│   │   ├── EventRequest.java
+│   │   └── VenueRequest.java
+│   └── response
+│       ├── EventResponse.java
+│       └── VenueResponse.java
+├── entity/                                 → JPA entities (representing the tables)
+│   ├── EventEntity.java
+│   └── VenueEntity.java
 ├── exception/                              → Custom exceptions
-│   ├── ResourceNotFoundException.java
-│   └── BadRequestException.java
+│   ├── BadRequestException.java
+│   ├── GlobalExceptionHandler.java
+│   ├── ResourceConflictException
+│   └── ResourceNotFoundException.java
 ├── mapper/                                 → MapStruct mappers (Entity ↔ DTO)
 │   ├── EventMapper.java
 │   └── VenueMapper.java
-├── model/                                  → JPA entities (representing the tables)
-│   ├── Event.java
-│   └── Venue.java
+├── model/                                  → Domain models for business logic (non-persistent)
+│   ├── EventModel.java
+│   └── VenueModel.java
 ├── repository/                             → Data access (JPA interfaces)
 │   ├── impl/
 │   │   ├── EventRepositoryImpl.java
@@ -61,6 +75,8 @@ src/main/java/com/events_cav/events_venues
 │   └── interfaces/
 │       ├── DataEventRepository.java
 │       └── DataVenueRepository.java
+│       ├── IEventRepository.java
+│       └── IVenueRepository.java
 └── service/                                → Business logic and validations
     ├── impl/
     │   ├── EventServiceImpl.java
@@ -84,25 +100,35 @@ Once the application is running, you can explore and test every endpoint using:
 
 ### 🏟️ Venues
 
-| Method | Endpoint       | Description              |
-|--------|----------------|--------------------------|
-| POST   | `/venues`      | Create a new venue       |
-| GET    | `/venues`      | List all venues          |
-| GET    | `/venues/{id}` | Get venue by ID          |
-| PUT    | `/venues/{id}` | Update a venue           |
-| DELETE | `/venues/{id}` | Delete a venue           |
+| Method | Endpoint       | Description                 | Status Codes |
+|--------|----------------|-----------------------------|--------------|
+| POST   | `/venues`      | Create a new venue          | 201, 400, 409 |
+| GET    | `/venues`      | List all venues             | 200          |
+| GET    | `/venues/{id}` | Get venue by ID             | 200, 404     |
+| PUT    | `/venues/{id}` | Update a venue              | 200, 400, 404, 409 |
+| DELETE | `/venues/{id}` | Delete a venue              | 204, 404     |
 
 ---
 
 ### 🎵 Events
 
-| Method | Endpoint       | Description                                    |
-|--------|----------------|------------------------------------------------|
-| POST   | `/events`      | Create an event (requires a valid venue ID)   |
-| GET    | `/events`      | List all events (includes nested venue info)  |
-| GET    | `/events/{id}` | Get event by ID                                |
-| PUT    | `/events/{id}` | Update an event                                |
-| DELETE | `/events/{id}` | Delete an event                                |
+| Method | Endpoint       | Description                 | Status Codes |
+|--------|----------------|-----------------------------|--------------|
+| POST   | `/events`      | Create an event (requires venue ID) | 201, 400, 404, 409 |
+| **GET**| **`/events`** | **List & Filter Events (Paginado)** | **200** |
+| GET    | `/events/{id}` | Get event by ID             | 200, 404     |
+| PUT    | `/events/{id}` | Update an event             | 200, 400, 404, 409 |
+| DELETE | `/events/{id}` | Delete an event             | 204, 404     |
+
+#### Paginación y Filtros de Events (`GET /events`)
+
+| Query Parameter | Tipo | Descripción | Ejemplo |
+|---|---|---|---|
+| `page` | Integer | Número de página (base 0) | `page=1` |
+| `size` | Integer | Elementos por página | `size=10` |
+| `sort` | String | Propiedad de ordenamiento (`propiedad,asc/desc`) | `sort=date,desc` |
+| `city` | String | Filtra eventos por la ubicación del Venue | `city=Miami` |
+| `date` | Date | Filtra eventos por fecha exacta | `date=2026-05-20` |
 
 ---
 
@@ -111,5 +137,5 @@ Once the application is running, you can explore and test every endpoint using:
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone <your-repository-url>
+git clone https://github.com/Militaseeee/Camila-Acosta-Events/tree/develop
 ```
