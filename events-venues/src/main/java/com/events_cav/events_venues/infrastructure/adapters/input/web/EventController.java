@@ -2,7 +2,7 @@ package com.events_cav.events_venues.infrastructure.adapters.input.web;
 
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.EventRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.EventResponse;
-import com.events_cav.events_venues.domain.ports.input.IEventService;
+import com.events_cav.events_venues.domain.ports.input.EventManagementPort_yaNo;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,9 +25,9 @@ import java.time.LocalDate; // Importación para el filtro de fecha
 @RequestMapping("/events")
 public class EventController {
 
-    private final IEventService eventService;
+    private final EventManagementPort_yaNo eventService;
 
-    public EventController(IEventService eventService) {
+    public EventController(EventManagementPort_yaNo eventService) {
         this.eventService = eventService;
     }
 

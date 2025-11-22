@@ -1,7 +1,7 @@
 package com.events_cav.events_venues.infrastructure.adapters.output.jpa;
 
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.VenueEntity;
-import com.events_cav.events_venues.domain.ports.output.IVenueRepository;
+import com.events_cav.events_venues.domain.ports.output.VenueRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor // Lombok inyecta el dataVenueRepository automáticamente
-public class VenueRepositoryImpl implements IVenueRepository {
+public class VenueRepositoryImpl implements VenueRepositoryPort {
 
     private final DataVenueRepository jpaRepository; // Inyectamos la interfaz de JPA
 

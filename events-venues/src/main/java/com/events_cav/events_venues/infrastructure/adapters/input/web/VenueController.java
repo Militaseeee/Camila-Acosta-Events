@@ -2,7 +2,7 @@ package com.events_cav.events_venues.infrastructure.adapters.input.web;
 
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.VenueRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
-import com.events_cav.events_venues.domain.ports.input.IVenueService;
+import com.events_cav.events_venues.domain.ports.input.VenueManagementPort_yaNo;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +21,9 @@ import java.util.List;
 @RequestMapping("/venues")
 public class VenueController {
 
-    private final IVenueService venueService;
+    private final VenueManagementPort_yaNo venueService;
 
-    public VenueController(IVenueService venueService) {
+    public VenueController(VenueManagementPort_yaNo venueService) {
         this.venueService = venueService;
     }
 

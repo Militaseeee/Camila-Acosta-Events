@@ -1,7 +1,7 @@
 package com.events_cav.events_venues.infrastructure.adapters.output.jpa;
 
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.EventEntity;
-import com.events_cav.events_venues.domain.ports.output.IEventRepository;
+import com.events_cav.events_venues.domain.ports.output.EventRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class EventRepositoryImpl implements IEventRepository {
+public class EventRepositoryImpl implements EventRepositoryPort {
 
     private final DataEventRepository jpaRepository;
 

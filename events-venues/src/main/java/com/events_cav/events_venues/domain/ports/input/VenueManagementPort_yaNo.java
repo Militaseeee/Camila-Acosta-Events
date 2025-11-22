@@ -4,7 +4,7 @@ import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.reques
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
 import java.util.List;
 
-public interface IVenueService {
+public interface VenueManagementPort_yaNo {
 
     VenueResponse create(VenueRequest request);
     VenueResponse getById(Long id);

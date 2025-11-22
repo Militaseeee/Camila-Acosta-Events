@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 
-public interface IEventService {
+public interface EventManagementPort_yaNo {
     EventResponse create(EventRequest request);
     EventResponse getById(Long id);
 
