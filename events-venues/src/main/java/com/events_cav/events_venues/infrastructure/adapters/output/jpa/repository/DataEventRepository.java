@@ -1,4 +1,4 @@
-package com.events_cav.events_venues.infrastructure.adapters.output.jpa;
+package com.events_cav.events_venues.infrastructure.adapters.output.jpa.repository;
 
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.EventEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

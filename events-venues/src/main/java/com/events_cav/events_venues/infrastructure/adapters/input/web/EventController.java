@@ -1,8 +1,10 @@
 package com.events_cav.events_venues.infrastructure.adapters.input.web;
 
+import com.events_cav.events_venues.domain.model.EventModel;
+import com.events_cav.events_venues.domain.ports.input.*; // Importa los 5 Use Cases
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.EventRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.EventResponse;
-import com.events_cav.events_venues.domain.ports.input.EventManagementPort_yaNo;
+import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper; // Importa el Mapper
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -10,197 +12,126 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// Importaciones de Swagger / OpenAPI
+// Imports de Swagger
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.media.Schema; // Importación para documentar Page
+import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.time.LocalDate; // Importación para el filtro de fecha
-
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/events")
 public class EventController {
 
-    private final EventManagementPort_yaNo eventService;
+    // Inyección de los 5 Use Cases
+    private final CreateEventUseCase createEventUseCase;
+    private final GetEventUseCase getEventUseCase;
+    private final GetAllEventsUseCase getAllEventsUseCase;
+    private final UpdateEventUseCase updateEventUseCase;
+    private final DeleteEventUseCase deleteEventUseCase;
 
-    public EventController(EventManagementPort_yaNo eventService) {
-        this.eventService = eventService;
+    // Inyección del Mapper (Responsabilidad del Adaptador)
+    private final EventMapper eventMapper = EventMapper.INSTANCE;
+
+    // Constructor con todas las inyecciones de Use Cases
+    public EventController(
+            CreateEventUseCase createEventUseCase,
+            GetEventUseCase getEventUseCase,
+            GetAllEventsUseCase getAllEventsUseCase,
+            UpdateEventUseCase updateEventUseCase,
+            DeleteEventUseCase deleteEventUseCase) {
+        this.createEventUseCase = createEventUseCase;
+        this.getEventUseCase = getEventUseCase;
+        this.getAllEventsUseCase = getAllEventsUseCase;
+        this.updateEventUseCase = updateEventUseCase;
+        this.deleteEventUseCase = deleteEventUseCase;
     }
 
-    // Create Event (Sin cambios)
-    @Operation(summary = "Create a new Event", description = "Creates a new event associated with an existing venue. The name must be unique")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Event details to create (requires valid Venue ID)",
-            required = true,
-            content = @Content(mediaType = "application/json",
-                    examples = @ExampleObject(value = """
-                        {
-                            "name": "Rock Festival 2025",
-                            "date": "2025-11-20",
-                            "idVenue": 5
-                        }
-                    """))
-    )
+    // Create Event
+    @Operation(summary = "Create a new Event")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Event created successfully",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                {
-                                    "id": 1,
-                                    "name": "Rock Festival 2025",
-                                    "date": "2025-11-20",
-                                    "venue": {
-                                        "id": 5,
-                                        "name": "Grand Stadium",
-                                        "location": "Main St 123"
-                                    }
-                                }
-                            """))),
-            @ApiResponse(responseCode = "400", description = "Invalid input, duplicate name, or Venue ID does not exist",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{ \"message\": \"The Venue with ID 5 does not exist\" }")))
+            @ApiResponse(responseCode = "201", description = "Event created successfully"),
+            @ApiResponse(responseCode = "404", description = "Venue ID does not exist"),
+            @ApiResponse(responseCode = "409", description = "Duplicate event name (Conflict)")
     })
     @PostMapping
     public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) {
-        // El servicio ya nos devuelve el EventResponse con el Venue anidado
-        return ResponseEntity.status(HttpStatus.CREATED).body(eventService.create(request));
+        // DTO -> Model
+        EventModel modelToCreate = eventMapper.toEventModel(request);
+
+        // Llamar al Use Case
+        EventModel createdModel = createEventUseCase.create(modelToCreate, request.getIdVenue());
+
+        // Model -> DTO Response
+        return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toEventResponse(createdModel));
     }
 
-    // Get Event by ID (Sin cambios)
-    @Operation(summary = "Get Event by ID", description = "Retrieves detailed information about a specific event, including its venue")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Event found",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                {
-                                    "id": 1,
-                                    "name": "Jazz Night",
-                                    "date": "2025-06-15",
-                                    "venue": {
-                                        "id": 2,
-                                        "name": "Blue Lounge",
-                                        "location": "Downtown Avenue"
-                                    }
-                                }
-                            """))),
-            @ApiResponse(responseCode = "404", description = "Event not found",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{ \"message\": \"Event not found with ID: 1\" }")))
+    // Get Event by ID
+    @Operation(summary = "Get Event by ID")
+    @ApiResponses(value = { /* Swagger Responses */
+            @ApiResponse(responseCode = "200", description = "Event found"),
+            @ApiResponse(responseCode = "404", description = "Event not found")
     })
     @GetMapping("/{id}")
     public ResponseEntity<EventResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(eventService.getById(id));
+        // Llamar al Use Case
+        EventModel model = getEventUseCase.getById(id);
+
+        // Model -> DTO Response
+        return ResponseEntity.ok(eventMapper.toEventResponse(model));
     }
 
-    // Get All Events (Ahora con Paginación y Filtros)
-    @Operation(summary = "Get all Events with Pagination and Filters",
-            description = "Retrieves a paginated list of all registered events, optionally filtered by city or date. Uses query params: page, size, sort, city, date.")
+    // Get All Events (Paginación y Filtros)
+    @Operation(summary = "Get all Events with Pagination and Filters")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Paginated list of events retrieved successfully",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Page.class), // Documentamos que devolvemos un Page
-                            examples = @ExampleObject(value = """
-                                {
-                                    "content": [
-                                        {
-                                            "id": 1,
-                                            "name": "Rock Festival 2025",
-                                            "date": "2025-11-20",
-                                            "venue": {
-                                                "id": 5,
-                                                "name": "Grand Stadium",
-                                                "location": "Main St 123"
-                                            }
-                                        }
-                                    ],
-                                    "pageable": {
-                                        "pageNumber": 0,
-                                        "pageSize": 20,
-                                        "sort": { "sorted": true, "empty": false, "unsorted": false },
-                                        "offset": 0,
-                                        "unpaged": false,
-                                        "paged": true
-                                    },
-                                    "totalElements": 1,
-                                    "totalPages": 1,
-                                    "number": 0,
-                                    "size": 20,
-                                    "first": true,
-                                    "last": true
-                                }
-                            """)))
+            @ApiResponse(responseCode = "200", description = "Paginated list retrieved successfully")
     })
     @GetMapping
     public ResponseEntity<Page<EventResponse>> getAll(
-            // Spring Data inyecta el objeto Pageable a partir de los parámetros URL (?page=X&size=Y&sort=Z)
             Pageable pageable,
-            // Parámetros opcionales de filtro
             @RequestParam(required = false) String city,
             @RequestParam(required = false) LocalDate date
     ) {
-        // Llama al nuevo método del servicio
-        return ResponseEntity.ok(eventService.getAll(pageable, city, date));
+        // Llamar al Use Case (devuelve Page<Model>)
+        Page<EventModel> modelsPage = getAllEventsUseCase.getAll(pageable, city, date);
+
+        // Mapear Page<Model> a Page<Response DTO>
+        return ResponseEntity.ok(modelsPage.map(eventMapper::toEventResponse));
     }
 
-    // Update Event (Sin cambios)
-    @Operation(summary = "Update an Event", description = "Updates an existing event's information. Requires a valid Venue ID")
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Updated event details",
-            required = true,
-            content = @Content(mediaType = "application/json",
-                    examples = @ExampleObject(value = """
-                        {
-                            "name": "Updated Rock Festival",
-                            "date": "2025-12-01",
-                            "idVenue": 5
-                        }
-                    """))
-    )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Event updated successfully",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = """
-                                {
-                                    "id": 1,
-                                    "name": "Updated Rock Festival",
-                                    "date": "2025-12-01",
-                                    "venue": {
-                                        "id": 5,
-                                        "name": "Grand Stadium",
-                                        "location": "Main St 123"
-                                    }
-                                }
-                             """))),
-            @ApiResponse(responseCode = "404", description = "Event or Venue not found",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{ \"message\": \"Event not found with ID: 99\" }"))),
-            @ApiResponse(responseCode = "400", description = "Invalid data or duplicate name",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{ \"message\": \"An event with name 'Updated Rock Festival' already exists\" }")))
+    // Update Event
+    @Operation(summary = "Update an Event")
+    @ApiResponses(value = { /* Swagger Responses */
+            @ApiResponse(responseCode = "200", description = "Event updated successfully"),
+            @ApiResponse(responseCode = "404", description = "Event or Venue not found"),
+            @ApiResponse(responseCode = "409", description = "Duplicate name (Conflict)")
     })
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody EventRequest request) {
-        return ResponseEntity.ok(eventService.update(id, request));
+        // DTO -> Model
+        EventModel modelToUpdate = eventMapper.toEventModel(request);
+
+        // Llamar al Use Case
+        EventModel updatedModel = updateEventUseCase.update(id, modelToUpdate, request.getIdVenue());
+
+        // Model -> DTO Response
+        return ResponseEntity.ok(eventMapper.toEventResponse(updatedModel));
     }
 
-    // Delete Event (Sin cambios)
-    @Operation(summary = "Delete an Event", description = "Removes an event from the system")
+    // Delete Event
+    @Operation(summary = "Delete an Event")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Event deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Event not found",
-                    content = @Content(mediaType = "application/json",
-                            examples = @ExampleObject(value = "{ \"message\": \"Event not found with ID: 10\" }")))
+            @ApiResponse(responseCode = "404", description = "Event not found")
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        eventService.delete(id);
+        deleteEventUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
-
 }

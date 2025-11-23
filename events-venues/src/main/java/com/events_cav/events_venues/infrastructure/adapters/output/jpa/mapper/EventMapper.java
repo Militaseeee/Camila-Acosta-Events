@@ -1,31 +1,31 @@
 package com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper;
 
+import com.events_cav.events_venues.domain.model.EventModel;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.EventRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.EventResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.EventEntity;
-import com.events_cav.events_venues.domain.model.EventModel; // <-- NUEVO IMPORT DEL MODELO
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-// El uses = VenueMapper.class ahora mapeará VenueModel ↔ VenueResponse/VenueEntity
-@Mapper(uses = VenueMapper.class)
+// AÑADIR componentModel = "spring" para integrar mejor con Spring (Best Practice)
+@Mapper(uses = VenueMapper.class, componentModel = "spring")
 public interface EventMapper {
 
     EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
 
-    // DTO Request -> MODEL (Para crear el objeto de negocio en el servicio)
-    // El Venue se mapea a NULL, y el Servicio se encarga de buscarlo usando idVenue
+    // DTO Request -> MODEL
+    // El Venue se mapea a NULL/ignore, y el Use Case se encarga de buscarlo con idVenue
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "venue", ignore = true)
     EventModel toEventModel(EventRequest request);
 
-    // MODEL -> DTO Response (Para devolver al controlador)
+    // MODEL -> DTO Response
     EventResponse toEventResponse(EventModel model);
 
-    // MODEL -> ENTITY (Para guardar en la BD)
+    // MODEL -> ENTITY
     EventEntity toEventEntity(EventModel model);
 
-    // ENTITY -> MODEL (Para devolver desde el repositorio al servicio)
+    // ENTITY -> MODEL
     EventModel toEventModel(EventEntity entity);
 }
