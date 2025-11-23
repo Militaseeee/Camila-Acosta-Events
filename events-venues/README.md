@@ -42,48 +42,29 @@ The project follows a strict separation of concerns:
 
 ```
 src/main/java/com/events_cav/events_venues
-├── config/                                 → Project settings (Swagger, security, etc.)      
+├── application/                            → Application Layer (Use Case Implementations)
+│   ├── EventServiceImpl.java
+│   └── VenueServiceImpl.java
+├── config/                                 → INFRASTRUCTURE: Framework Configuration (OpenAPI, Security)
 │   └── OpenApiConfig.java
-├── controller/                             → REST controllers (handle HTTP requests)
-│   ├── EventController.java
-│   └── VenueController.java
-├── dto/                                    → Data transfer objects (inputs/outputs)
-│   ├── request
-│   │   ├── EventRequest.java
-│   │   └── VenueRequest.java
-│   └── response
-│       ├── EventResponse.java
-│       └── VenueResponse.java
-├── entity/                                 → JPA entities (representing the tables)
-│   ├── EventEntity.java
-│   └── VenueEntity.java
-├── exception/                              → Custom exceptions
-│   ├── BadRequestException.java
-│   ├── GlobalExceptionHandler.java
-│   ├── ResourceConflictException
-│   └── ResourceNotFoundException.java
-├── mapper/                                 → MapStruct mappers (Entity ↔ DTO)
-│   ├── EventMapper.java
-│   └── VenueMapper.java
-├── model/                                  → Domain models for business logic (non-persistent)
-│   ├── EventModel.java
-│   └── VenueModel.java
-├── repository/                             → Data access (JPA interfaces)
-│   ├── impl/
-│   │   ├── EventRepositoryImpl.java
-│   │   └── VenueRepositoryImpl.java
-│   └── interfaces/
-│       ├── DataEventRepository.java
-│       └── DataVenueRepository.java
-│       ├── IEventRepository.java
-│       └── IVenueRepository.java
-└── service/                                → Business logic and validations
-    ├── impl/
-    │   ├── EventServiceImpl.java
-    │   └── VenueServiceImpl.java
-    └── interfaces/
-        ├── IEventService.java
-        └── IVenueService.java  
+├── domain/                                 → DOMAIN CORE (Pure, without external dependencies)
+│   ├── model/                              → Domain Models (EventModel, VenueModel)
+│   ├── ports/input/                        → INPUT PORTS (Use Cases: CreateEventUseCase, GetEventUseCase, etc.)
+│   ├── ports/output/                       → OUTPUT PORTS (Repository Contracts: EventRepositoryPort, VenueRepositoryPort)
+│   └── exception/                          → Domain Exceptions (ResourceNotFound, ResourceConflict)
+├── infrastructure/                         → INFRASTRUCTURE (Adapters)
+│   ├── adapters/input/web/                 → WEB ADAPTER (Controllers/DTOs)
+│   │   ├── dto/...                         → Request & Response DTOs
+│   │   ├── EventController.java
+│   │   └── VenueController.java
+│   └── adapters/output/jpa/                → JPA ADAPTER (Database)
+│       ├── entity/                         → JPA Entities (EventEntity, VenueEntity)
+│       ├── mapper/                         → MapStruct Mappers (DTO ↔ Model ↔ Entity)
+│       ├── DataEventRepository.java        → Spring Data Interfaces
+│       └── EventJpaAdapter.java            → Implements EventRepositoryPort
+│       └── VenueJpaAdapter.java            → Implements VenueRepositoryPort
+
+
 ```
 
 ---
