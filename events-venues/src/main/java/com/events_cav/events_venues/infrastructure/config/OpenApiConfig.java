@@ -1,4 +1,4 @@
-package com.events_cav.events_venues.config;
+package com.events_cav.events_venues.infrastructure.config;
 
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
