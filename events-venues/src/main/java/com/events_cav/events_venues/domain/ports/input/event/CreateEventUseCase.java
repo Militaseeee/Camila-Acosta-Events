@@ -1,4 +1,4 @@
-package com.events_cav.events_venues.domain.ports.input;
+package com.events_cav.events_venues.domain.ports.input.event;
 
 import com.events_cav.events_venues.domain.model.EventModel;
 

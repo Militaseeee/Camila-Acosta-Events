@@ -1,19 +1,23 @@
-package com.events_cav.events_venues.infrastructure.adapters.input.web;
+package com.events_cav.events_venues.infrastructure.adapters.input.web.controller;
 
 import com.events_cav.events_venues.domain.model.VenueModel;
-import com.events_cav.events_venues.domain.ports.input.*; // Importa los 5 Use Cases
+// Importamos las 5 interfaces de Use Case (Puertos de Entrada)
+import com.events_cav.events_venues.domain.ports.input.venue.CreateVenueUseCase;
+import com.events_cav.events_venues.domain.ports.input.venue.GetVenueUseCase;
+import com.events_cav.events_venues.domain.ports.input.venue.GetAllVenuesUseCase;
+import com.events_cav.events_venues.domain.ports.input.venue.UpdateVenueUseCase;
+import com.events_cav.events_venues.domain.ports.input.venue.DeleteVenueUseCase;
+
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.VenueRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-// Imports de Swagger
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
@@ -24,16 +28,16 @@ import java.util.stream.Collectors;
 @RequestMapping("/venues")
 public class VenueController {
 
-    // Inyección de los 5 Use Cases
+    // Declaración de las 5 dependencias de Casos de Uso (Puertos de Entrada)
     private final CreateVenueUseCase createVenueUseCase;
     private final GetVenueUseCase getVenueUseCase;
     private final GetAllVenuesUseCase getAllVenuesUseCase;
     private final UpdateVenueUseCase updateVenueUseCase;
     private final DeleteVenueUseCase deleteVenueUseCase;
 
-    // Inyección del Mapper (Responsabilidad del Adaptador)
     private final VenueMapper venueMapper = VenueMapper.INSTANCE;
 
+    // Constructor con Inyección de Dependencias
     public VenueController(
             CreateVenueUseCase createVenueUseCase,
             GetVenueUseCase getVenueUseCase,
@@ -47,7 +51,7 @@ public class VenueController {
         this.deleteVenueUseCase = deleteVenueUseCase;
     }
 
-    // Create
+    // CREATE (usa CreateVenueUseCase)
     @Operation(summary = "Create a new Venue")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Venue created successfully"),
@@ -55,17 +59,15 @@ public class VenueController {
     })
     @PostMapping
     public ResponseEntity<VenueResponse> create(@Valid @RequestBody VenueRequest request) {
-        // DTO -> Model
         VenueModel modelToCreate = venueMapper.toVenueModel(request);
 
-        // Llamar al Use Case
+        // Delegación al Caso de Uso específico para la creación
         VenueModel createdModel = createVenueUseCase.create(modelToCreate);
 
-        // Model -> DTO Response
         return ResponseEntity.status(HttpStatus.CREATED).body(venueMapper.toVenueResponse(createdModel));
     }
 
-    // Get by ID
+    // GET by ID (usa GetVenueUseCase)
     @Operation(summary = "Get Venue by ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Venue found"),
@@ -73,24 +75,23 @@ public class VenueController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<VenueResponse> getById(@PathVariable Long id) {
-        // Llamar al Use Case
+        // Delegación al Caso de Uso específico para la lectura
         VenueModel model = getVenueUseCase.getById(id);
 
-        // Model -> DTO Response
         return ResponseEntity.ok(venueMapper.toVenueResponse(model));
     }
 
-    // Get All
+    // GET ALL (usa GetAllVenuesUseCase)
     @Operation(summary = "Get all Venues")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List of venues retrieved successfully")
+            @ApiResponse(responseCode = "200", description = "List retrieved successfully")
     })
     @GetMapping
     public ResponseEntity<List<VenueResponse>> getAll() {
-        // Llamar al Use Case
+        // Delegación al Caso de Uso específico para la consulta
         List<VenueModel> models = getAllVenuesUseCase.getAll();
 
-        // Mapear List<Model> -> List<Response DTO>
+        // Mapeo de List<Model> a List<Response DTO>
         List<VenueResponse> responses = models.stream()
                 .map(venueMapper::toVenueResponse)
                 .collect(Collectors.toList());
@@ -98,7 +99,7 @@ public class VenueController {
         return ResponseEntity.ok(responses);
     }
 
-    // Update
+    // UPDATE (usa UpdateVenueUseCase)
     @Operation(summary = "Update a Venue")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Venue updated successfully"),
@@ -109,17 +110,15 @@ public class VenueController {
     public ResponseEntity<VenueResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody VenueRequest request) {
-        // DTO -> Model
         VenueModel modelToUpdate = venueMapper.toVenueModel(request);
 
-        // Llamar al Use Case
+        // Delegación al Caso de Uso específico para la actualización
         VenueModel updatedModel = updateVenueUseCase.update(id, modelToUpdate);
 
-        // Model -> DTO Response
         return ResponseEntity.ok(venueMapper.toVenueResponse(updatedModel));
     }
 
-    // Delete
+    // DELETE (usa DeleteVenueUseCase)
     @Operation(summary = "Delete a Venue")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Venue deleted successfully"),
@@ -127,6 +126,7 @@ public class VenueController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
+        // Delegación al Caso de Uso específico para la eliminación
         deleteVenueUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }
