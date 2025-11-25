@@ -18,7 +18,7 @@ public class EventEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true) // Es para que me aparezca nombre unico
+    @Column(name = "name", nullable = false, unique = true) // Es para que me aparezca nombre unico
     private String name;
 
     @Column(nullable = false)
