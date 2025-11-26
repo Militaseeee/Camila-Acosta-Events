@@ -10,6 +10,7 @@ import com.events_cav.events_venues.domain.ports.input.venue.DeleteVenueUseCase;
 
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.VenueRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
+import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
 
 import jakarta.validation.Valid;
@@ -17,9 +18,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+// Imports de Swagger / OpenAPI
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content; // 💡 NUEVO
+import io.swagger.v3.oas.annotations.media.ExampleObject; // 💡 NUEVO
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.parameters.RequestBody; // 💡 NUEVO
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +40,9 @@ public class VenueController {
     private final UpdateVenueUseCase updateVenueUseCase;
     private final DeleteVenueUseCase deleteVenueUseCase;
 
-    private final VenueMapper venueMapper = VenueMapper.INSTANCE;
+    // private final VenueMapper venueMapper = VenueMapper.INSTANCE;
+    // inyecto el Mapper en el constructor para consistencia
+    private final VenueMapper venueMapper;
 
     // Constructor con Inyección de Dependencias
     public VenueController(
@@ -43,90 +50,144 @@ public class VenueController {
             GetVenueUseCase getVenueUseCase,
             GetAllVenuesUseCase getAllVenuesUseCase,
             UpdateVenueUseCase updateVenueUseCase,
-            DeleteVenueUseCase deleteVenueUseCase) {
+            DeleteVenueUseCase deleteVenueUseCase, VenueMapper venueMapper) {
         this.createVenueUseCase = createVenueUseCase;
         this.getVenueUseCase = getVenueUseCase;
         this.getAllVenuesUseCase = getAllVenuesUseCase;
         this.updateVenueUseCase = updateVenueUseCase;
         this.deleteVenueUseCase = deleteVenueUseCase;
+        this.venueMapper = venueMapper;
     }
 
     // CREATE (usa CreateVenueUseCase)
-    @Operation(summary = "Create a new Venue")
+    @Operation(summary = "Create a new Venue", description = "Creates a new venue in the system. The name must be unique.")
+    @RequestBody(
+            description = "Venue details to create",
+            required = true,
+            content = @Content(mediaType = "application/json",
+                    examples = @ExampleObject(value = """
+                            {
+                                "name": "New Convention Center", 
+                                "location": "150 Main Street",
+                                "city": "Bogotá", 
+                                "capacity": 5000 
+                            }
+                        """))
+    )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Venue created successfully"),
-            @ApiResponse(responseCode = "409", description = "Duplicate venue name (Conflict)")
+            @ApiResponse(responseCode = "201", description = "Venue created successfully",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "id": 1, 
+                                        "name": "New Convention Center", 
+                                        "location": "150 Main Street",
+                                        "city": "Bogotá", 
+                                        "capacity": 5000 
+                                    }
+                                """))),
+            @ApiResponse(responseCode = "409", description = "Duplicate venue name (Conflict)",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{ \"message\": \"A venue with name 'New Convention Center' already exists\" }")))
     })
     @PostMapping
     public ResponseEntity<VenueResponse> create(@Valid @RequestBody VenueRequest request) {
+        // ... Lógica de creación
         VenueModel modelToCreate = venueMapper.toVenueModel(request);
-
-        // Delegación al Caso de Uso específico para la creación
         VenueModel createdModel = createVenueUseCase.create(modelToCreate);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(venueMapper.toVenueResponse(createdModel));
     }
 
     // GET by ID (usa GetVenueUseCase)
-    @Operation(summary = "Get Venue by ID")
+    @Operation(summary = "Get Venue by ID", description = "Retrieves detailed information about a specific venue.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Venue found"),
-            @ApiResponse(responseCode = "404", description = "Venue not found")
+            @ApiResponse(responseCode = "200", description = "Venue found",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "id": 1, 
+                                        "name": "New Convention Center", 
+                                        "location": "150 Main Street",
+                                        "city": "Bogotá", 
+                                        "capacity": 5000 
+                                    }
+                                """))),
+            @ApiResponse(responseCode = "404", description = "Venue not found",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{ \"message\": \"Venue not found with ID: 99\" }")))
     })
     @GetMapping("/{id}")
     public ResponseEntity<VenueResponse> getById(@PathVariable Long id) {
-        // Delegación al Caso de Uso específico para la lectura
+        // ... Lógica de lectura
         VenueModel model = getVenueUseCase.getById(id);
-
         return ResponseEntity.ok(venueMapper.toVenueResponse(model));
     }
 
     // GET ALL (usa GetAllVenuesUseCase)
-    @Operation(summary = "Get all Venues")
+    @Operation(summary = "Get all Venues", description = "Retrieves a list of all registered venues.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List retrieved successfully")
+            @ApiResponse(responseCode = "200", description = "List retrieved successfully",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = """
+                                    [
+                                        { "id": 1, "name": "New Convention Center", "location": "150 Main Street", "city": "Bogotá", "capacity": 5000 },
+                                        { "id": 2, "name": "Small Hall", "location": "North Ave", "city": "Medellín", "capacity": 500 }
+                                    ]
+                                """)))
     })
     @GetMapping
     public ResponseEntity<List<VenueResponse>> getAll() {
-        // Delegación al Caso de Uso específico para la consulta
+        // ... Lógica de consulta
         List<VenueModel> models = getAllVenuesUseCase.getAll();
-
-        // Mapeo de List<Model> a List<Response DTO>
         List<VenueResponse> responses = models.stream()
                 .map(venueMapper::toVenueResponse)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(responses);
     }
 
     // UPDATE (usa UpdateVenueUseCase)
-    @Operation(summary = "Update a Venue")
+    @Operation(summary = "Update a Venue", description = "Updates an existing venue by ID. The name must remain unique.")
+    @RequestBody(
+            description = "Updated venue details",
+            required = true,
+            content = @Content(mediaType = "application/json",
+                    examples = @ExampleObject(value = """
+                            {
+                                "name": "Updated Convention Center", 
+                                "location": "200 Main Street",
+                                "city": "Bogotá", 
+                                "capacity": 6000 
+                            }
+                        """))
+    )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Venue updated successfully"),
             @ApiResponse(responseCode = "404", description = "Venue not found"),
-            @ApiResponse(responseCode = "409", description = "Duplicate name (Conflict)")
+            @ApiResponse(responseCode = "409", description = "Duplicate name (Conflict)",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{ \"message\": \"A venue with name 'Other Venue Name' already exists.\" }")))
     })
     @PutMapping("/{id}")
     public ResponseEntity<VenueResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody VenueRequest request) {
+        // ... Lógica de actualización
         VenueModel modelToUpdate = venueMapper.toVenueModel(request);
-
-        // Delegación al Caso de Uso específico para la actualización
         VenueModel updatedModel = updateVenueUseCase.update(id, modelToUpdate);
-
         return ResponseEntity.ok(venueMapper.toVenueResponse(updatedModel));
     }
 
     // DELETE (usa DeleteVenueUseCase)
-    @Operation(summary = "Delete a Venue")
+    @Operation(summary = "Delete a Venue", description = "Removes a venue from the system.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Venue deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Venue not found")
+            @ApiResponse(responseCode = "404", description = "Venue not found",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{ \"message\": \"Venue not found with ID: 99\" }")))
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        // Delegación al Caso de Uso específico para la eliminación
+        // ... Lógica de eliminación
         deleteVenueUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -1,10 +1,10 @@
 package com.events_cav.events_venues.infrastructure.adapters.output.jpa.adapter;
 
-import com.events_cav.events_venues.domain.model.VenueModel; // 🔴 AHORA USAMOS EL MODELO
-import com.events_cav.events_venues.domain.ports.output.VenueRepositoryPort; // 🔴 Implementa el Puerto de Salida
+import com.events_cav.events_venues.domain.model.VenueModel;
+import com.events_cav.events_venues.domain.ports.output.VenueRepositoryPort;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.repository.DataVenueRepository;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.VenueEntity;
-import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper; // 🔴 Usamos el Mapper aquí
+import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -13,24 +13,23 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Repository
-@RequiredArgsConstructor
-// El Adaptador JPA implementa el Puerto de Salida.
+@RequiredArgsConstructor // Se encarga de inyectar los campos final
 public class VenueJpaAdapter implements VenueRepositoryPort {
 
     private final DataVenueRepository jpaRepository;
-    private final VenueMapper venueMapper = VenueMapper.INSTANCE; // Instanciamos el Mapper
+    private final VenueMapper venueMapper;
 
     // El Puerto recibe MODEL y devuelve MODEL
     @Override
     public VenueModel save(VenueModel venue) {
         // Model -> Entity (Conversión interna del Adaptador)
-        VenueEntity entityToSave = venueMapper.toVenueEntity(venue);
+        VenueEntity entityToSave = venueMapper.toVenueEntity(venue); // Usa el mapper inyectado
 
         // Guardar Entity
         VenueEntity savedEntity = jpaRepository.save(entityToSave);
 
         // Entity -> Model (Devolver al Use Case)
-        return venueMapper.toVenueModel(savedEntity);
+        return venueMapper.toVenueModel(savedEntity); // Usa el mapper inyectado
     }
 
     // El Puerto devuelve Optional<MODEL>
@@ -54,7 +53,6 @@ public class VenueJpaAdapter implements VenueRepositoryPort {
         jpaRepository.deleteById(id);
     }
 
-    // Estos métodos ya estaban bien
     @Override
     public boolean existsByName(String name) {
         return jpaRepository.existsByName(name);
