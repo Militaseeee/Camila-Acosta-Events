@@ -9,7 +9,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 // AÑADIR componentModel = "spring" para integrar mejor con Spring (Best Practice)
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {EventMapper.class})
 public interface VenueMapper {
 
     VenueMapper INSTANCE = Mappers.getMapper(VenueMapper.class);

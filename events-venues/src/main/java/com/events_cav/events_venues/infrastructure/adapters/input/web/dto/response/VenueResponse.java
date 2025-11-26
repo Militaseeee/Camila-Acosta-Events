@@ -11,4 +11,6 @@ public class VenueResponse {
     private Long id;
     private String name;
     private String location;
+    private String city;
+    private int capacity;
 }
