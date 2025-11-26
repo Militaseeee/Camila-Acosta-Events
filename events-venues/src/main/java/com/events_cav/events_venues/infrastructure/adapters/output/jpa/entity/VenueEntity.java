@@ -27,7 +27,7 @@ public class VenueEntity {
     private String city;
 
     @Column(nullable = false)
-    private int capacity;
+    private Integer capacity;
 
     // -> Un Venue tiene muchos Eventos
     // OJO: Yo debo excluir la colección de los métodos de Lombok para prevenir errores de recursión infinita (StackOverflowError) cuando JPA intenta cargar entidades relacionadas

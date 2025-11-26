@@ -25,5 +25,5 @@ public class VenueRequest {
 
     @NotNull(message = "Capacity is mandatory")
     @Min(value = 1, message = "Capacity must be greater than zero")
-    private int capacity;
+    private Integer capacity;
 }

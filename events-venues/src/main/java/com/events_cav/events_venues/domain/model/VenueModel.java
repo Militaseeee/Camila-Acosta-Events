@@ -8,12 +8,12 @@ public class VenueModel {
     private String name;
     private String location;
     private String city;
-    private int capacity;
+    private Integer capacity;
 
     public VenueModel() {
     }
 
-    public VenueModel(Long id, String name, String location, String city, int capacity) {
+    public VenueModel(Long id, String name, String location, String city, Integer capacity) {
         this.id = id;
         this.name = name;
         this.location = location;

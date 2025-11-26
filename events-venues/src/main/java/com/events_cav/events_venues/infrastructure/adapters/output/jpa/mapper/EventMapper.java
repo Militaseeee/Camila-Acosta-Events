@@ -6,13 +6,13 @@ import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.respon
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.EventEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+//import org.mapstruct.factory.Mappers;
 
 // AÑADIR componentModel = "spring" para integrar mejor con Spring (Best Practice)
 @Mapper(uses = VenueMapper.class, componentModel = "spring")
 public interface EventMapper {
 
-    EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
+//    EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
 
     // DTO Request -> MODEL
     // El Venue se mapea a NULL/ignore, y el Use Case se encarga de buscarlo con idVenue
