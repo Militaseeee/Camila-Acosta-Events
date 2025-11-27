@@ -61,9 +61,9 @@ src/main/java/com/events_cav/events_venues
 │       ├── entity/                         → JPA Entities (EventEntity, VenueEntity)
 │       ├── mapper/                         → MapStruct Mappers (DTO ↔ Model ↔ Entity)
 │       ├── DataEventRepository.java        → Spring Data Interfaces
-│       └── EventJpaAdapter.java            → Implements EventRepositoryPort
-│       └── VenueJpaAdapter.java            → Implements VenueRepositoryPort
-
+│       ├── EventJpaAdapter.java            → Implements EventRepositoryPort
+│       ├── VenueJpaAdapter.java            → Implements VenueRepositoryPort
+│       └── specification/
 
 ```
 
@@ -110,6 +110,99 @@ Once the application is running, you can explore and test every endpoint using:
 | `sort` | String | Propiedad de ordenamiento (`propiedad,asc/desc`) | `sort=date,desc` |
 | `city` | String | Filtra eventos por la ubicación del Venue | `city=Miami` |
 | `date` | Date | Filtra eventos por fecha exacta | `date=2026-05-20` |
+
+---
+## 🏆 Completed Features (HU3, HU4 & Advanced HU)
+
+## ✔ Architecture Improvements
+- Fully implemented **Hexagonal Architecture** (Domain – Application – Adapters).
+- Domain layer completely decoupled from Spring/JPA.
+- Controllers and Persistence are adapters connected via input/output ports.
+- Separation of:
+    - DTOs
+    - Entities
+    - Domain models
+    - Use cases
+    - Ports & Adapters
+
+---
+
+## ✔ Pagination, Filtering & Optimized Querying
+- `GET /events` supports:
+    - `page`, `size`, `sort`
+    - Filters by: `city`, `date`, `venue`, and event state.
+- Implemented **JPQL** and **JPA Specifications** for dynamic querying.
+- Replaced native queries with composable criteria filters.
+- Reduced **N+1 queries problem** using:
+    - `JOIN FETCH`
+    - `@EntityGraph`
+    - Lazy loading on collections
+    - Batch fetching (where needed)
+
+---
+
+## ✔ Advanced JPA Relationships & Lifecycle
+Implemented relationships:
+
+### 🔹 Venue → Event
+- `OneToMany` (Venue → Events)
+- `ManyToOne` (Event → Venue)
+- Correct usage of:
+    - `mappedBy`
+    - `cascade`
+    - `orphanRemoval`
+    - Foreign key column: `venue_id`
+    - Lazy loading by default
+
+### Optional Relationships
+- Many-to-Many for categories/tags (if applicable in the module)
+
+### Entity Lifecycle Considerations
+- Proper use of:
+    - `persist`
+    - `merge`
+    - `remove`
+    - `detach`
+- Handling deletion/update of related Events safely inside transactions.
+
+---
+
+## ✔ Transactional Management
+- Use cases wrapped with `@Transactional` in the Application layer.
+- Differentiated between:
+    - **readOnly transactions** → queries
+    - **write transactions** → create/update/delete
+- Correct propagation strategy:
+    - `REQUIRED` for normal flows
+    - `REQUIRES_NEW` for isolated operations if needed
+
+---
+
+## ✔ Database Migrations with Flyway
+- Added versioned migrations under:
+  src/main/resources/db/migration
+
+Included scripts:
+- `V1__init.sql`  
+  Creates base tables (Venue, Event)
+- `V2__relations.sql`  
+  Adds FKs, indexes, constraints
+- `V3__adjustments.sql`  
+  Additional column or performance adjustments
+
+Flyway automatically runs on startup, ensuring DB consistency in all environments.
+
+---
+
+## ✔ Global Error Handling
+Implemented centralized exception handling with:
+
+- **404** – Resource Not Found
+- **409** – Conflict (duplicates, constraint violations)
+- **400** – Validation errors (@Valid)
+
+Using a clean `GlobalExceptionHandler` via `@ControllerAdvice`.
+
 
 ---
 
