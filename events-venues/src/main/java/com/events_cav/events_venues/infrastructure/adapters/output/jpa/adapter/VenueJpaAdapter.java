@@ -6,6 +6,8 @@ import com.events_cav.events_venues.infrastructure.adapters.output.jpa.repositor
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.VenueEntity;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -39,13 +41,13 @@ public class VenueJpaAdapter implements VenueRepositoryPort {
         return jpaRepository.findById(id).map(venueMapper::toVenueModel);
     }
 
-    // El Puerto devuelve List<MODEL>
     @Override
-    public List<VenueModel> findAll() {
-        // Obtiene List<Entity> y la mapea a List<Model>
-        return jpaRepository.findAll().stream()
-                .map(venueMapper::toVenueModel)
-                .collect(Collectors.toList());
+    public Page<VenueModel> findAll(Pageable pageable) {
+        // Llama al metodo paginado del repositorio JPA, obteniendo Page<VenueEntity>
+        Page<VenueEntity> entityPage = jpaRepository.findAll(pageable);
+
+        // Mapea Page<VenueEntity> a Page<VenueModel>
+        return entityPage.map(venueMapper::toVenueModel);
     }
 
     @Override
