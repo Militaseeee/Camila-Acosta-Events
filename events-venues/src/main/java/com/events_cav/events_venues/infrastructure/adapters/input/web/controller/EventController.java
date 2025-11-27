@@ -12,6 +12,7 @@ import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.reques
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.EventResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,8 +26,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-// 🛑 CORRECCIÓN CLAVE: Eliminamos el import conflictivo de Swagger RequestBody
-// import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import java.time.LocalDate;
 
@@ -61,7 +60,7 @@ public class EventController {
 
     // CREATE (usa CreateEventUseCase)
     @Operation(summary = "Create a new Event", description = "Creates a new event associated with an existing venue. The name must be unique.")
-    // ✅ CORRECCIÓN: Usamos el FQN (Fully Qualified Name) de Swagger para la documentación
+
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Event details to create (requires valid Venue ID)",
             required = true,
@@ -100,7 +99,7 @@ public class EventController {
     })
     @PostMapping
     public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
-        // ... Lógica de creación
+        // Lógica de creación
         EventModel modelToCreate = eventMapper.toEventModel(request);
         EventModel createdModel = createEventUseCase.create(modelToCreate, request.getIdVenue());
         return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toEventResponse(createdModel));
@@ -131,7 +130,7 @@ public class EventController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<EventResponse> getById(@PathVariable Long id) {
-        // ... Lógica de lectura
+        // Lógica de lectura
         EventModel model = getEventUseCase.getById(id);
         return ResponseEntity.ok(eventMapper.toEventResponse(model));
     }
@@ -142,6 +141,9 @@ public class EventController {
             @ApiResponse(responseCode = "200", description = "Paginated list retrieved successfully")
     })
     @GetMapping
+    @Parameter(name = "page", description = "Número de página (0..N)", example = "0")
+    @Parameter(name = "size", description = "Número de registros por página", example = "10")
+    @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "date,desc")
     public ResponseEntity<Page<EventResponse>> getAll(
             Pageable pageable,
             @RequestParam(required = false) String city,
@@ -154,7 +156,7 @@ public class EventController {
 
     // UPDATE (usa UpdateEventUseCase)
     @Operation(summary = "Update an Event", description = "Updates an existing event's information by ID. Requires a valid Venue ID.")
-    // ✅ CORRECCIÓN: Usamos el FQN (Fully Qualified Name) de Swagger para la documentación
+
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Updated event details",
             required = true,

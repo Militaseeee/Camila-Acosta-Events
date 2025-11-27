@@ -12,6 +12,7 @@ import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.reques
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
 
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -133,6 +134,9 @@ public class VenueController {
                                     ]
                                 """)))
     })
+    @Parameter(name = "page", description = "Número de página (0..N)", example = "0")
+    @Parameter(name = "size", description = "Número de registros por página", example = "10")
+    @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "name,asc")
     @GetMapping
     public ResponseEntity<List<VenueResponse>> getAll() {
         // ... Lógica de consulta
