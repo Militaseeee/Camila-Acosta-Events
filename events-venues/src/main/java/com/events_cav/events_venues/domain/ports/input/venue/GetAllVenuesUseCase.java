@@ -3,7 +3,7 @@ package com.events_cav.events_venues.domain.ports.input.venue;
 import com.events_cav.events_venues.domain.model.VenueModel;
 import org.springframework.data.domain.Page;
 
-import java.awt.print.Pageable;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 // Define el caso de uso para listar todos los Venues.

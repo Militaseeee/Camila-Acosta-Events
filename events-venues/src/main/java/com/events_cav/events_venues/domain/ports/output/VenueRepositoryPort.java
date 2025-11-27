@@ -1,6 +1,8 @@
 package com.events_cav.events_venues.domain.ports.output;
 
-import com.events_cav.events_venues.domain.model.VenueModel; // 🔴 ¡Importa el MODELO de Dominio!
+import com.events_cav.events_venues.domain.model.VenueModel;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 import java.util.Optional;
 
@@ -9,7 +11,8 @@ import java.util.Optional;
 public interface VenueRepositoryPort {
     VenueModel save(VenueModel venue);
     Optional<VenueModel> findById(Long id);
-    List<VenueModel> findAll();
+    // List<VenueModel> findAll();
+    Page<VenueModel> findAll(Pageable pageable);
     void deleteById(Long id);
 
     boolean existsByName(String name);

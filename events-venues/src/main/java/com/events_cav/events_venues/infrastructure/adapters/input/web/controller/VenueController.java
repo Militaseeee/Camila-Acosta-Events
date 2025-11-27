@@ -8,6 +8,9 @@ import com.events_cav.events_venues.domain.ports.input.venue.GetAllVenuesUseCase
 import com.events_cav.events_venues.domain.ports.input.venue.UpdateVenueUseCase;
 import com.events_cav.events_venues.domain.ports.input.venue.DeleteVenueUseCase;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.VenueRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
@@ -138,13 +141,12 @@ public class VenueController {
     @Parameter(name = "size", description = "Número de registros por página", example = "10")
     @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "name,asc")
     @GetMapping
-    public ResponseEntity<List<VenueResponse>> getAll() {
-        // ... Lógica de consulta
-        List<VenueModel> models = getAllVenuesUseCase.getAll();
-        List<VenueResponse> responses = models.stream()
-                .map(venueMapper::toVenueResponse)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<Page<VenueResponse>> getAll(Pageable pageable) {
+        Page<VenueModel> modelsPage = getAllVenuesUseCase.getAll(pageable);
+
+        Page<VenueResponse> responsePage = modelsPage.map(venueMapper::toVenueResponse);
+
+        return ResponseEntity.ok(responsePage);
     }
 
     // UPDATE (usa UpdateVenueUseCase)
