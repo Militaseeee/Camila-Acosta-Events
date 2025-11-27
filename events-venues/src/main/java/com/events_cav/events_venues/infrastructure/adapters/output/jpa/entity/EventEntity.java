@@ -21,8 +21,11 @@ public class EventEntity {
     @Column(name = "name", nullable = false, unique = true) // Es para que me aparezca nombre unico
     private String name;
 
-    @Column(nullable = false)
-    private LocalDate date;
+    @Column(name = "start_date", nullable = false)
+    private LocalDate startDate;
+
+    @Column(name = "end_date", nullable = false)
+    private LocalDate endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_venue", nullable = false)

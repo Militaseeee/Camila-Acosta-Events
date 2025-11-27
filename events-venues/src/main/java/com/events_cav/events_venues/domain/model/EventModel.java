@@ -5,17 +5,21 @@ import java.time.LocalDate;
 public class EventModel {
     private Long id;
     private String name;
-    private LocalDate date;
+//    private LocalDate date;
+
+    private LocalDate startDate;
+    private LocalDate endDate;
 
     private VenueModel venue;
 
     public EventModel() {
     }
 
-    public EventModel(Long id, String name, LocalDate date, VenueModel venue) {
+    public EventModel(Long id, String name, LocalDate startDate, LocalDate endDate, VenueModel venue) {
         this.id = id;
         this.name = name;
-        this.date = date;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.venue = venue;
     }
 
@@ -35,12 +39,20 @@ public class EventModel {
         this.name = name;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
     public VenueModel getVenue() {

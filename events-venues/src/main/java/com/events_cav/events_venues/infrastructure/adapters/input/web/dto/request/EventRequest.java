@@ -17,6 +17,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class EventRequest {
 
+    @NotNull(message = "{event.id.notnull}", groups = {OnUpdate.class})
+    private Long id;
+
     @NotBlank(message = "{event.name.notblank}", groups = {OnCreate.class, OnUpdate.class}) // Usando mensajes personalizados
     @Size(min = 3, max = 100, message = "{event.name.size}", groups = {OnCreate.class, OnUpdate.class})
     private String name;
