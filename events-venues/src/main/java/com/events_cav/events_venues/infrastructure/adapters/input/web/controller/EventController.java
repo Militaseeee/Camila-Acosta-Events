@@ -17,15 +17,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*; // Contiene el @RequestBody correcto de Spring
 
 // Imports de Swagger (documentación)
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content; // 💡 NUEVO
-import io.swagger.v3.oas.annotations.media.ExampleObject; // 💡 NUEVO
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.parameters.RequestBody; // 💡 NUEVO
+// 🛑 CORRECCIÓN CLAVE: Eliminamos el import conflictivo de Swagger RequestBody
+// import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 import java.time.LocalDate;
 
@@ -40,8 +41,6 @@ public class EventController {
     private final UpdateEventUseCase updateEventUseCase;
     private final DeleteEventUseCase deleteEventUseCase;
 
-    // private final EventMapper eventMapper = EventMapper.INSTANCE;
-    // inyecto el Mapper en el constructor para consistencia
     private final EventMapper eventMapper;
 
     // Constructor con Inyección de Dependencias
@@ -51,18 +50,19 @@ public class EventController {
             GetAllEventsUseCase getAllEventsUseCase,
             UpdateEventUseCase updateEventUseCase,
             DeleteEventUseCase deleteEventUseCase,
-            EventMapper eventMapper) { // Aca se inyecto
+            EventMapper eventMapper) {
         this.createEventUseCase = createEventUseCase;
         this.getEventUseCase = getEventUseCase;
         this.getAllEventsUseCase = getAllEventsUseCase;
         this.updateEventUseCase = updateEventUseCase;
         this.deleteEventUseCase = deleteEventUseCase;
-        this.eventMapper = eventMapper; // Aca se asigna
+        this.eventMapper = eventMapper;
     }
 
     // CREATE (usa CreateEventUseCase)
     @Operation(summary = "Create a new Event", description = "Creates a new event associated with an existing venue. The name must be unique.")
-    @RequestBody(
+    // ✅ CORRECCIÓN: Usamos el FQN (Fully Qualified Name) de Swagger para la documentación
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Event details to create (requires valid Venue ID)",
             required = true,
             content = @Content(mediaType = "application/json",
@@ -99,7 +99,7 @@ public class EventController {
                             examples = @ExampleObject(value = "{ \"message\": \"An event with name 'Rock Festival 2026' already exists\" }")))
     })
     @PostMapping
-    public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) {
+    public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
         // ... Lógica de creación
         EventModel modelToCreate = eventMapper.toEventModel(request);
         EventModel createdModel = createEventUseCase.create(modelToCreate, request.getIdVenue());
@@ -140,7 +140,6 @@ public class EventController {
     @Operation(summary = "Get all Events with Pagination and Filters", description = "Retrieves a paginated list of all events, optionally filtering by city and date. Solves N+1 problem.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paginated list retrieved successfully")
-            // Nota: Los ejemplos de paginación son más complejos y se basan en la estructura Page<T> de Spring.
     })
     @GetMapping
     public ResponseEntity<Page<EventResponse>> getAll(
@@ -155,7 +154,8 @@ public class EventController {
 
     // UPDATE (usa UpdateEventUseCase)
     @Operation(summary = "Update an Event", description = "Updates an existing event's information by ID. Requires a valid Venue ID.")
-    @RequestBody(
+    // ✅ CORRECCIÓN: Usamos el FQN (Fully Qualified Name) de Swagger para la documentación
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Updated event details",
             required = true,
             content = @Content(mediaType = "application/json",
@@ -175,7 +175,7 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody EventRequest request) {
+            @Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
         // ... Lógica de actualización
         EventModel modelToUpdate = eventMapper.toEventModel(request);
         EventModel updatedModel = updateEventUseCase.update(id, modelToUpdate, request.getIdVenue());

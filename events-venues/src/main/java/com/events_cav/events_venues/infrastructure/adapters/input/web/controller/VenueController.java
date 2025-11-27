@@ -10,7 +10,6 @@ import com.events_cav.events_venues.domain.ports.input.venue.DeleteVenueUseCase;
 
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.VenueRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.VenueResponse;
-import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.VenueMapper;
 
 import jakarta.validation.Valid;
@@ -20,11 +19,10 @@ import org.springframework.web.bind.annotation.*;
 
 // Imports de Swagger / OpenAPI
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content; // 💡 NUEVO
-import io.swagger.v3.oas.annotations.media.ExampleObject; // 💡 NUEVO
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.parameters.RequestBody; // 💡 NUEVO
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -61,7 +59,7 @@ public class VenueController {
 
     // CREATE (usa CreateVenueUseCase)
     @Operation(summary = "Create a new Venue", description = "Creates a new venue in the system. The name must be unique.")
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Venue details to create",
             required = true,
             content = @Content(mediaType = "application/json",
@@ -147,7 +145,7 @@ public class VenueController {
 
     // UPDATE (usa UpdateVenueUseCase)
     @Operation(summary = "Update a Venue", description = "Updates an existing venue by ID. The name must remain unique.")
-    @RequestBody(
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Updated venue details",
             required = true,
             content = @Content(mediaType = "application/json",
