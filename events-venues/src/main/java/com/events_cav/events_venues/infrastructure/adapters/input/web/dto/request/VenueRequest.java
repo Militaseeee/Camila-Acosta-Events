@@ -1,5 +1,8 @@
 package com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request;
 
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnCreate;
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnUpdate;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,17 +16,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class VenueRequest {
 
-    @NotBlank(message = "The venue name is required")
-    @Size(min = 3, max = 50, message = "The name must be between 3 and 50 characters long")
+    @NotBlank(message = "{venue.name.notblank}", groups = {OnCreate.class, OnUpdate.class})
+    @Size(min = 3, max = 50, message = "{venue.name.size}", groups = {OnCreate.class, OnUpdate.class})
     private String name;
 
-    @NotBlank(message = "Location is mandatory")
+    @NotBlank(message = "{venue.location.notblank}", groups = {OnCreate.class, OnUpdate.class})
     private String location;
 
-    @NotBlank(message = "City is mandatory")
+    @NotBlank(message = "{venue.city.notblank}", groups = {OnCreate.class, OnUpdate.class})
     private String city;
 
-    @NotNull(message = "Capacity is mandatory")
-    @Min(value = 1, message = "Capacity must be greater than zero")
+    @NotNull(message = "{venue.capacity.notnull}", groups = {OnCreate.class, OnUpdate.class})
+    @Min(value = 1, message = "{venue.capacity.min}", groups = {OnCreate.class, OnUpdate.class})
     private Integer capacity;
 }

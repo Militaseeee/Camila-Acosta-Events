@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-// Extender ResponseEntityExceptionHandler facilita el manejo de excepciones de Spring como MethodArgumentNotValidException
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 

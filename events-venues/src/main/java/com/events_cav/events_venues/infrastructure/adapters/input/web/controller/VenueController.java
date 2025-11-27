@@ -8,6 +8,7 @@ import com.events_cav.events_venues.domain.ports.input.venue.GetAllVenuesUseCase
 import com.events_cav.events_venues.domain.ports.input.venue.UpdateVenueUseCase;
 import com.events_cav.events_venues.domain.ports.input.venue.DeleteVenueUseCase;
 
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -19,6 +20,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 // Imports de Swagger / OpenAPI
@@ -93,7 +95,7 @@ public class VenueController {
                             examples = @ExampleObject(value = "{ \"message\": \"A venue with name 'New Convention Center' already exists\" }")))
     })
     @PostMapping
-    public ResponseEntity<VenueResponse> create(@Valid @RequestBody VenueRequest request) {
+    public ResponseEntity<VenueResponse> create(@Validated(ValidationGroups.OnCreate.class) @RequestBody VenueRequest request) {
         // ... Lógica de creación
         VenueModel modelToCreate = venueMapper.toVenueModel(request);
         VenueModel createdModel = createVenueUseCase.create(modelToCreate);
@@ -174,7 +176,7 @@ public class VenueController {
     @PutMapping("/{id}")
     public ResponseEntity<VenueResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody VenueRequest request) {
+            @Validated(ValidationGroups.OnUpdate.class) @RequestBody VenueRequest request) {
         // ... Lógica de actualización
         VenueModel modelToUpdate = venueMapper.toVenueModel(request);
         VenueModel updatedModel = updateVenueUseCase.update(id, modelToUpdate);
