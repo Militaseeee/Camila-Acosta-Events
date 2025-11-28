@@ -24,7 +24,7 @@ public interface EventMapper {
     EventResponse toEventResponse(EventModel model);
 
     // MODEL -> ENTITY
-    @Mapping(target = "startDate", source = "startDate") 
+    @Mapping(target = "startDate", source = "startDate")
     @Mapping(target = "endDate", source = "endDate")
     EventEntity toEventEntity(EventModel model);
 

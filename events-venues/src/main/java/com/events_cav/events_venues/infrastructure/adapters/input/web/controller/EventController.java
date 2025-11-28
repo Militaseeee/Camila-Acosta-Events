@@ -1,26 +1,23 @@
 package com.events_cav.events_venues.infrastructure.adapters.input.web.controller;
 
 import com.events_cav.events_venues.domain.model.EventModel;
-// Importamos las 5 interfaces de Use Case (Puertos de Entrada)
-import com.events_cav.events_venues.domain.ports.input.event.CreateEventUseCase;
-import com.events_cav.events_venues.domain.ports.input.event.GetEventUseCase;
-import com.events_cav.events_venues.domain.ports.input.event.GetAllEventsUseCase;
-import com.events_cav.events_venues.domain.ports.input.event.UpdateEventUseCase;
-import com.events_cav.events_venues.domain.ports.input.event.DeleteEventUseCase;
+import com.events_cav.events_venues.domain.ports.input.event.*;
 
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.EventRequest;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.response.EventResponse;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper;
+// Importaciones para Grupos de Validación
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnCreate;
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnUpdate;
+import org.springframework.validation.annotation.Validated;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*; // Contiene el @RequestBody correcto de Spring
+import org.springframework.web.bind.annotation.*;
 
-// Imports de Swagger (documentación)
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -33,16 +30,13 @@ import java.time.LocalDate;
 @RequestMapping("/events")
 public class EventController {
 
-    // Declaración de las 5 dependencias de Casos de Uso (Puertos de Entrada)
     private final CreateEventUseCase createEventUseCase;
     private final GetEventUseCase getEventUseCase;
     private final GetAllEventsUseCase getAllEventsUseCase;
     private final UpdateEventUseCase updateEventUseCase;
     private final DeleteEventUseCase deleteEventUseCase;
-
     private final EventMapper eventMapper;
 
-    // Constructor con Inyección de Dependencias
     public EventController(
             CreateEventUseCase createEventUseCase,
             GetEventUseCase getEventUseCase,
@@ -60,7 +54,6 @@ public class EventController {
 
     // CREATE (usa CreateEventUseCase)
     @Operation(summary = "Create a new Event", description = "Creates a new event associated with an existing venue. The name must be unique.")
-
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Event details to create (requires valid Venue ID)",
             required = true,
@@ -69,7 +62,7 @@ public class EventController {
                             {
                                 "name": "Rock Festival 2026",
                                 "startDate": "2026-11-20",
-                                "endDate": "2026-11-22",   
+                                "endDate": "2026-11-22",
                                 "idVenue": 1
                             }
                         """))
@@ -82,7 +75,7 @@ public class EventController {
                                         "id": 1,
                                         "name": "Rock Festival 2026",
                                         "startDate": "2026-11-20",
-                                        "endDate": "2026-11-22",  
+                                        "endDate": "2026-11-22",
                                         "venue": {
                                             "id": 1,
                                             "name": "Movistar Arena",
@@ -100,8 +93,8 @@ public class EventController {
                             examples = @ExampleObject(value = "{ \"message\": \"An event with name 'Rock Festival 2026' already exists\" }")))
     })
     @PostMapping
-    public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
-        // Lógica de creación (ASUME que EventRequest y EventModel ya tienen startDate y endDate)
+    public ResponseEntity<EventResponse> create(@Validated({OnCreate.class}) @RequestBody EventRequest request) { // 👈 Uso de Grupo de Validación
+        // Lógica de creación
         EventModel modelToCreate = eventMapper.toEventModel(request);
         EventModel createdModel = createEventUseCase.create(modelToCreate, request.getIdVenue());
         return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toEventResponse(createdModel));
@@ -116,8 +109,8 @@ public class EventController {
                                     {
                                         "id": 1,
                                         "name": "Rock Festival 2026",
-                                        "startDate": "2026-11-20", 
-                                        "endDate": "2026-11-22",   
+                                        "startDate": "2026-11-20",
+                                        "endDate": "2026-11-22",
                                         "venue": {
                                             "id": 1,
                                             "name": "Movistar Arena",
@@ -138,7 +131,7 @@ public class EventController {
         return ResponseEntity.ok(eventMapper.toEventResponse(model));
     }
 
-    // GET ALL (usa GetAllEventsUseCase) - Corregido en la respuesta anterior
+    // GET ALL (usa GetAllEventsUseCase)
     @Operation(summary = "Get all Events with Pagination and Filters", description = "Retrieves a paginated list of all events, optionally filtering by city and a date range (dateStart/dateEnd). Solves N+1 problem.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paginated list retrieved successfully")
@@ -152,8 +145,8 @@ public class EventController {
     public ResponseEntity<Page<EventResponse>> getAll(
             Pageable pageable,
             @RequestParam(required = false) String city,
-            @RequestParam(required = false) LocalDate dateStart, // Parámetro de inicio
-            @RequestParam(required = false) LocalDate dateEnd    // Parámetro de fin
+            @RequestParam(required = false) LocalDate dateStart,
+            @RequestParam(required = false) LocalDate dateEnd
     ) {
         // Delegación al Caso de Uso específico para la consulta paginada
         Page<EventModel> modelsPage = getAllEventsUseCase.getAll(pageable, city, dateStart, dateEnd);
@@ -162,7 +155,6 @@ public class EventController {
 
     // UPDATE (usa UpdateEventUseCase)
     @Operation(summary = "Update an Event", description = "Updates an existing event's information by ID. Requires a valid Venue ID.")
-
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Updated event details",
             required = true,
@@ -170,8 +162,8 @@ public class EventController {
                     examples = @ExampleObject(value = """
                             {
                                 "name": "Updated Festival 2026",
-                                "startDate": "2026-12-01", 
-                                "endDate": "2026-12-03",   
+                                "startDate": "2026-12-01",
+                                "endDate": "2026-12-03",
                                 "idVenue": 1
                             }
                         """))
@@ -184,7 +176,7 @@ public class EventController {
     @PutMapping("/{id}")
     public ResponseEntity<EventResponse> update(
             @PathVariable Long id,
-            @Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
+            @Validated({OnUpdate.class}) @RequestBody EventRequest request) { // Uso de Grupo de Validación
         // Lógica de actualización
         EventModel modelToUpdate = eventMapper.toEventModel(request);
         EventModel updatedModel = updateEventUseCase.update(id, modelToUpdate, request.getIdVenue());

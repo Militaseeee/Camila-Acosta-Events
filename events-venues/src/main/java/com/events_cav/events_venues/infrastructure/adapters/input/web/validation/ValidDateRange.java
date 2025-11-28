@@ -11,7 +11,7 @@ import java.lang.annotation.*;
 public @interface ValidDateRange {
 
     // Mensaje de error personalizado (lo pondremos en messages.properties)
-    String message() default "{event.date.range.invalid}";
+    String message() default "{event.dates.invalid_range}";
 
     Class<?>[] groups() default {};
 

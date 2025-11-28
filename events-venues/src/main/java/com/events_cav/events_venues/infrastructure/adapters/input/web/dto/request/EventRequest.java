@@ -1,5 +1,6 @@
 package com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request;
 
+import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,7 +12,7 @@ import com.events_cav.events_venues.infrastructure.adapters.input.web.validation
 
 import java.time.LocalDate;
 
-@ValidDateRange(groups = {OnCreate.class, OnUpdate.class})
+@ValidDateRange(groups = {ValidationGroups.OnCreate.class, ValidationGroups.OnUpdate.class})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
