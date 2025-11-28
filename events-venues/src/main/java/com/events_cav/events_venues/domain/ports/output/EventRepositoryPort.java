@@ -15,7 +15,7 @@ public interface EventRepositoryPort {
     Optional<EventModel> findById(Long id); // Devuelve Optional del Model
 
     // Búsqueda: Devuelve Page del Model
-    Page<EventModel> findAll(Pageable pageable, String city, LocalDate date);
+    Page<EventModel> findAll(Pageable pageable, String city, LocalDate dateStart, LocalDate dateEnd);
 
     void deleteById(Long id);
 

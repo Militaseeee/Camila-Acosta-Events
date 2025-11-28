@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public class EventResponse {
     private Long id;
     private String name;
-    private LocalDate date;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private VenueResponse venue;
 }

@@ -68,7 +68,8 @@ public class EventController {
                     examples = @ExampleObject(value = """
                             {
                                 "name": "Rock Festival 2026",
-                                "date": "2026-11-20",
+                                "startDate": "2026-11-20",
+                                "endDate": "2026-11-22",   
                                 "idVenue": 1
                             }
                         """))
@@ -80,7 +81,8 @@ public class EventController {
                                     {
                                         "id": 1,
                                         "name": "Rock Festival 2026",
-                                        "date": "2026-11-20",
+                                        "startDate": "2026-11-20",
+                                        "endDate": "2026-11-22",  
                                         "venue": {
                                             "id": 1,
                                             "name": "Movistar Arena",
@@ -99,7 +101,7 @@ public class EventController {
     })
     @PostMapping
     public ResponseEntity<EventResponse> create(@Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
-        // Lógica de creación
+        // Lógica de creación (ASUME que EventRequest y EventModel ya tienen startDate y endDate)
         EventModel modelToCreate = eventMapper.toEventModel(request);
         EventModel createdModel = createEventUseCase.create(modelToCreate, request.getIdVenue());
         return ResponseEntity.status(HttpStatus.CREATED).body(eventMapper.toEventResponse(createdModel));
@@ -114,7 +116,8 @@ public class EventController {
                                     {
                                         "id": 1,
                                         "name": "Rock Festival 2026",
-                                        "date": "2026-11-20",
+                                        "startDate": "2026-11-20", 
+                                        "endDate": "2026-11-22",   
                                         "venue": {
                                             "id": 1,
                                             "name": "Movistar Arena",
@@ -135,22 +138,25 @@ public class EventController {
         return ResponseEntity.ok(eventMapper.toEventResponse(model));
     }
 
-    // GET ALL (usa GetAllEventsUseCase)
-    @Operation(summary = "Get all Events with Pagination and Filters", description = "Retrieves a paginated list of all events, optionally filtering by city and date. Solves N+1 problem.")
+    // GET ALL (usa GetAllEventsUseCase) - Corregido en la respuesta anterior
+    @Operation(summary = "Get all Events with Pagination and Filters", description = "Retrieves a paginated list of all events, optionally filtering by city and a date range (dateStart/dateEnd). Solves N+1 problem.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paginated list retrieved successfully")
     })
     @GetMapping
     @Parameter(name = "page", description = "Número de página (0..N)", example = "0")
     @Parameter(name = "size", description = "Número de registros por página", example = "10")
-    @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "date,desc")
+    @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "dateStart,desc")
+    @Parameter(name = "dateStart", description = "Fecha de inicio del rango (opcional, formato YYYY-MM-DD)", example = "2025-01-01")
+    @Parameter(name = "dateEnd", description = "Fecha de fin del rango (opcional, formato YYYY-MM-DD)", example = "2025-12-31")
     public ResponseEntity<Page<EventResponse>> getAll(
             Pageable pageable,
             @RequestParam(required = false) String city,
-            @RequestParam(required = false) LocalDate date
+            @RequestParam(required = false) LocalDate dateStart, // Parámetro de inicio
+            @RequestParam(required = false) LocalDate dateEnd    // Parámetro de fin
     ) {
         // Delegación al Caso de Uso específico para la consulta paginada
-        Page<EventModel> modelsPage = getAllEventsUseCase.getAll(pageable, city, date);
+        Page<EventModel> modelsPage = getAllEventsUseCase.getAll(pageable, city, dateStart, dateEnd);
         return ResponseEntity.ok(modelsPage.map(eventMapper::toEventResponse));
     }
 
@@ -164,7 +170,8 @@ public class EventController {
                     examples = @ExampleObject(value = """
                             {
                                 "name": "Updated Festival 2026",
-                                "date": "2026-12-01",
+                                "startDate": "2026-12-01", 
+                                "endDate": "2026-12-03",   
                                 "idVenue": 1
                             }
                         """))
@@ -178,7 +185,7 @@ public class EventController {
     public ResponseEntity<EventResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody EventRequest request) { // Usa el @RequestBody de Spring
-        // ... Lógica de actualización
+        // Lógica de actualización
         EventModel modelToUpdate = eventMapper.toEventModel(request);
         EventModel updatedModel = updateEventUseCase.update(id, modelToUpdate, request.getIdVenue());
         return ResponseEntity.ok(eventMapper.toEventResponse(updatedModel));
@@ -194,7 +201,7 @@ public class EventController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        // ... Lógica de eliminación
+        // Lógica de eliminación
         deleteEventUseCase.delete(id);
         return ResponseEntity.noContent().build();
     }

@@ -25,10 +25,4 @@ public class GetAllVenuesUseCaseImpl implements GetAllVenuesUseCase {
         return venueRepositoryPort.findAll(pageable);
     }
 
-    //    public List<VenueModel> getAll() {
-    //        return venueRepositoryPort.findAll();
-    //    }
-
-
-
 }

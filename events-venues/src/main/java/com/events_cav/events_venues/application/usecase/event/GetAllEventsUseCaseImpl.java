@@ -20,8 +20,9 @@ public class GetAllEventsUseCaseImpl implements GetAllEventsUseCase {
         this.eventRepositoryPort = eventRepositoryPort;
     }
 
+
     @Override
-    public Page<EventModel> getAll(Pageable pageable, String city, LocalDate date) {
-        return eventRepositoryPort.findAll(pageable, city, date);
+    public Page<EventModel> getAll(Pageable pageable, String city, LocalDate dateStart, LocalDate dateEnd) {
+        return eventRepositoryPort.findAll(pageable, city, dateStart, dateEnd);
     }
 }

@@ -16,7 +16,8 @@ public final class EventSpecification {
 
     private EventSpecification() {}
 
-    public static Specification<EventEntity> buildFilter(String city, LocalDate date) {
+    // La firma es correcta: recibe city, dateStart y dateEnd
+    public static Specification<EventEntity> buildFilter(String city, LocalDate dateStart, LocalDate dateEnd) {
 
         return (root, query, criteriaBuilder) -> {
 
@@ -25,24 +26,34 @@ public final class EventSpecification {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            // Filtro por city, Requiere JOIN con VenueEntity
+            // Filtro por city (No requiere cambios)
             if (city != null && !city.trim().isEmpty()) {
                 // Hacemos un JOIN con la entidad VenueEntity
                 Join<EventEntity, VenueEntity> venueJoin = root.join("venue");
 
-                // Predicado: venue.city LIKE '%{city}%' (Busca sin importar mayúsculas/minúsculas)
+                // Predicado: venue.city LIKE '%{city}%'
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.lower(venueJoin.get("city")),
                         "%" + city.toLowerCase() + "%"
                 ));
             }
 
-            // Filtro por date (Fecha exacta)
-            if (date != null) {
-                // Predicado: event.date = {date}
-                predicates.add(criteriaBuilder.equal(root.get("date"), date));
+            // Si se proporciona dateStart, la fecha de inicio del evento (EventEntity.startDate)
+            // debe ser mayor o igual a la fecha de inicio del rango solicitado
+            if (dateStart != null) {
+                // Predicado: event.startDate >= dateStart
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("startDate"), dateStart));
             }
 
+            // Si se proporciona dateEnd, la fecha de inicio del evento (EventEntity.startDate)
+            // debe ser menor o igual a la fecha de fin del rango solicitado.
+            if (dateEnd != null) {
+                // Predicado: event.startDate <= dateEnd
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("startDate"), dateEnd));
+            }
+
+            // Esto filtra por startDate entre dateStart y dateEnd
+            // Si el filtro debe considerar rangos (startDate–endDate), la lógica cambia
             // Optimización N+1 (join fetch)
             if (query.getResultType() != Long.class && query.getResultType() != long.class) {
                 root.fetch("venue");

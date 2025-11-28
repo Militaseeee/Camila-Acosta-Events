@@ -9,5 +9,5 @@ import java.time.LocalDate;
 // Recibe: Pageable de Spring (dependencia de framework), filtros.
 // Retorna: Página de modelos de Evento.
 public interface GetAllEventsUseCase {
-    Page<EventModel> getAll(Pageable pageable, String city, LocalDate date);
+    Page<EventModel> getAll(Pageable pageable, String city, LocalDate dateStart, LocalDate dateEnd);
 }

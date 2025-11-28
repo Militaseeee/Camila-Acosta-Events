@@ -1,10 +1,10 @@
 package com.events_cav.events_venues.infrastructure.adapters.output.jpa.adapter;
 
-import com.events_cav.events_venues.domain.model.EventModel; // 🔴 AHORA USAMOS EL MODELO
+import com.events_cav.events_venues.domain.model.EventModel;
 import com.events_cav.events_venues.domain.ports.output.EventRepositoryPort;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.repository.DataEventRepository;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.entity.EventEntity;
-import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper; // 🔴 Usamos el Mapper aquí
+import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.EventMapper;
 import com.events_cav.events_venues.infrastructure.adapters.output.jpa.specification.EventSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,10 +47,10 @@ public class EventJpaAdapter implements EventRepositoryPort {
 
     // El Puerto devuelve Page<MODEL>
     @Override
-    public Page<EventModel> findAll(Pageable pageable, String city, LocalDate date) {
+    public Page<EventModel> findAll(Pageable pageable, String city, LocalDate dateStart, LocalDate dateEnd) {
 
         // Usamos el Specification que incluye los filtros y la optimización N+1
-        Specification<EventEntity> specification = EventSpecification.buildFilter(city, date);
+        Specification<EventEntity> specification = EventSpecification.buildFilter(city, dateStart, dateEnd);
 
         // findAll(Specification, Pageable) hereda de JpaSpecificationExecutor
         Page<EventEntity> entityPage = jpaRepository.findAll(specification, pageable);
