@@ -7,5 +7,5 @@ import jakarta.validation.constraints.Size;
 public record RegisterRequest(
         @NotBlank String username,
         @Size(min = 6) String password,
-        @Pattern(regexp = "ADMIN|USER") String role // Asegura que el rol sea uno válido
+        @Pattern(regexp = "ADMIN|USER") String role // mira que el rol sea uno válido
 ) {}

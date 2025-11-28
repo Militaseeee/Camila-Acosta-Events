@@ -8,11 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-/**
- * Modelo de Dominio para el Usuario.
- * Implementa UserDetails para ser compatible con Spring Security.
- * No contiene anotaciones de frameworks (JPA, Spring, Lombok).
- */
 public class UserModel implements UserDetails {
 
     private Long id;
@@ -32,7 +27,7 @@ public class UserModel implements UserDetails {
 
     // Métodos de la Interfaz UserDetails (Implementación obligatoria)
 
-    // Retorna la colección de permisos/roles del usuario.
+    // Retorna la colección de permisos/roles del usuario
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Formato: "ROLE_ADMIN" o "ROLE_USER"

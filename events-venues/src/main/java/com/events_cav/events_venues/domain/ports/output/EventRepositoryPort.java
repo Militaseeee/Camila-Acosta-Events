@@ -1,8 +1,8 @@
 package com.events_cav.events_venues.domain.ports.output;
 
-import com.events_cav.events_venues.domain.model.EventModel; // ¡Importa el MODELO de Dominio!
+import com.events_cav.events_venues.domain.model.EventModel;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable; // Se permite Pageable/Page en el puerto de salida
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.util.Optional;
 

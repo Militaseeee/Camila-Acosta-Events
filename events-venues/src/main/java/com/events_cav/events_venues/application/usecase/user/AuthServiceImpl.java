@@ -1,60 +1,56 @@
-// src/main/java/com/events_cav/events_venues/application/usecase/AuthServiceImpl.java
 package com.events_cav.events_venues.application.usecase.user;
 
-import com.events_cav.events_venues.domain.model.Role;
 import com.events_cav.events_venues.domain.model.UserModel;
+import com.events_cav.events_venues.domain.model.user.UserLoginCommand; // Importa el comando
+import com.events_cav.events_venues.domain.model.user.UserRegisterCommand;
+import com.events_cav.events_venues.domain.ports.input.user.AuthService;
 import com.events_cav.events_venues.domain.ports.output.UserRepositoryPort;
 import com.events_cav.events_venues.infrastructure.config.JwtService;
-import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.LoginRequest;
-import com.events_cav.events_venues.infrastructure.adapters.input.web.dto.request.RegisterRequest;
-import lombok.RequiredArgsConstructor;
+import lombok.RequiredArgsConstructor; // Usamos Lombok para simplificar el constructor
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor
+@RequiredArgsConstructor // Genera un constructor con todos los campos finales (simplifica la DI)
 public class AuthServiceImpl implements AuthService {
 
-    private final UserRepositoryPort userRepositoryPort;
+    // Necesitas estos servicios para la lógica de autenticación
     private final PasswordEncoder passwordEncoder;
-    private final JwtService jwtService;
+    private final UserRepositoryPort userRepositoryPort;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
-    public void register(RegisterRequest request) {
-        // 1. Cifrar la contraseña
-        String encodedPassword = passwordEncoder.encode(request.password());
+    public void register(UserRegisterCommand command) {
+        UserModel newUser = new UserModel();
+        newUser.setUsername(command.username());
+        newUser.setRole(command.role());
 
-        // 2. Crear el modelo de dominio
-        UserModel user = UserModel.builder()
-                .username(request.username())
-                .password(encodedPassword)
-                // Asignar rol por defecto, asumo USER si no se especifica
-                .role(Role.valueOf(request.role().toUpperCase()))
-                .build();
+        String hashedPassword = passwordEncoder.encode(command.password());
+        newUser.setPassword(hashedPassword);
 
-        // 3. Guardar el usuario (a través del puerto)
-        userRepositoryPort.save(user);
+        userRepositoryPort.save(newUser);
     }
 
     @Override
-    public String authenticate(LoginRequest request) {
-        // 1. Autenticar usando el AuthenticationManager de Spring Security
-        authenticationManager.authenticate(
+    public String authenticate(UserLoginCommand command) {
+        // Intentar autenticar el usuario usando el AuthenticationManager
+        Authentication authentication = authenticationManager.authenticate(
+                // Usa el UsernamePasswordAuthenticationToken para contener las credenciales
                 new UsernamePasswordAuthenticationToken(
-                        request.username(),
-                        request.password()
+                        command.username(),
+                        command.password()
                 )
         );
 
-        // 2. Si la autenticación fue exitosa, obtener el UserDetails
-        UserModel user = userRepositoryPort.findByUsername(request.username())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + request.username()));
+        // Si la autenticación es exitosa, se obtiene el UserModel (UserDetails)
+        UserModel userModel = (UserModel) authentication.getPrincipal();
 
-        // 3. Generar el JWT
-        return jwtService.generateToken(user);
+        // Generar el token JWT
+        // Usa el servicio JWT para crear el token basado en los detalles del usuario autenticado
+        return jwtService.generateToken(userModel);
     }
 }
