@@ -2,6 +2,7 @@ package com.events_cav.events_venues.domain.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC; // Importación para acceder al TraceId del hilo
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
@@ -9,11 +10,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
-//import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.net.URI;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -46,11 +45,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problemDetail);
     }
 
-    // Manejo de Excepciones de Validación (@Valid)
+    // Manejo de Excepciones de Validación (@Valid) - Error 400
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ProblemDetail> handleValidationExceptions(MethodArgumentNotValidException ex, WebRequest request) {
 
-        // Recopila todos los errores de validación en una lista legible
         String errors = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
@@ -62,14 +60,14 @@ public class GlobalExceptionHandler {
                 request.getDescription(false)
         );
 
-        //Añadir los errores de campo en el campo de extensiones
         problemDetail.setProperty("errors", ex.getBindingResult().getFieldErrors().stream()
                 .collect(Collectors.toMap(
                         org.springframework.validation.FieldError::getField,
                         org.springframework.validation.FieldError::getDefaultMessage
                 )));
 
-        logError(problemDetail, ex);
+        // Usamos log.warn para errores de validación (400) que son problemas del cliente
+        logError(problemDetail, ex, log::warn);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
 
@@ -82,7 +80,8 @@ public class GlobalExceptionHandler {
                 "An unexpected error occurred. Please contact support.",
                 request.getDescription(false)
         );
-        logError(problemDetail, ex);
+        // Usamos log.error para errores internos del servidor (500)
+        logError(problemDetail, ex, log::error);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
     }
 
@@ -91,26 +90,41 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(status, detail);
 
         // Campos estándar ProblemDetail
-        problemDetail.setType(URI.create("about:blank")); // Podría ser una URI de documentación de error
+        problemDetail.setType(URI.create("about:blank"));
         problemDetail.setTitle(title);
-        // problemDetail.setInstance(URI.create(instance.substring(4))); // limpia el prefijo 'uri='
+        // Se puede limpiar el prefijo 'uri=' si es necesario: instance.substring(4)
+        problemDetail.setInstance(URI.create(instance));
+
+        // Implementación de correlación: Obtener el traceId del MDC
+        // Si Micrometer Tracing está activo, "traceId" se establece automáticamente.
+        String traceId = MDC.get("traceId");
 
         // Extensiones ProblemDetail (para cumplir con timestamp y traceId)
-        String traceId = UUID.randomUUID().toString(); // Generación básica de TraceId (mejorado en TASK 2)
         problemDetail.setProperty("timestamp", Instant.now());
-        problemDetail.setProperty("traceId", traceId);
+        // Incluimos el traceId obtenido del MDC. Si es null, usamos el de tu logError (N/A)
+        problemDetail.setProperty("traceId", traceId != null ? traceId : "N/A");
 
         return problemDetail;
     }
 
-    private void logError(ProblemDetail problemDetail, Exception ex) {
-        // En Task 2, usaremos el log estructurado y traceId
-        log.error("TraceId: {} | Status: {} | Title: {} | Detail: {} | Exception: {}",
+    // Nuevo metodo de logging que permite especificar el nivel (error, warn)
+    private void logError(ProblemDetail problemDetail, Exception ex, java.util.function.BiConsumer<String, Object[]> logger) {
+
+        String logMessage = "TraceId: {} | Status: {} | Tipo de Error: {} | Endpoint: {} | Detalle: {}";
+
+        logger.accept(logMessage, new Object[] {
                 problemDetail.getProperties().get("traceId"),
                 problemDetail.getStatus(),
-                problemDetail.getTitle(),
+                ex.getClass().getSimpleName(), // Tipo de error
+                problemDetail.getInstance(),   // Endpoint afectado
                 problemDetail.getDetail(),
-                ex.getClass().getName(),
-                ex);
+                ex // Pasa la excepción al final para imprimir el stack trace
+        });
+    }
+
+    // Mantenemos el metodo original por si quieres seguir usándolo para ResourceNotFound/Conflict
+    // Lo he modificado para usar el nuevo logError con nivel ERROR por defecto
+    private void logError(ProblemDetail problemDetail, Exception ex) {
+        logError(problemDetail, ex, log::error);
     }
 }
