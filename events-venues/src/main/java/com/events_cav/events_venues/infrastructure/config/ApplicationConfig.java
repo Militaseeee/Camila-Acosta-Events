@@ -25,12 +25,9 @@ public class ApplicationConfig {
     // Define cómo obtener los detalles del usuario
     @Bean
     public UserDetailsService userDetailsService() {
-        return username -> {
-            // Uso el metodo del Puerto de Dominio
-            // El puerto retorna un Optional<UserModel>
-            return userRepositoryPort.findByUsername(username)
-                    .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-        };
+        return username -> userRepositoryPort.findByUsername(username)
+                .map(CustomUserDetails::new)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
     }
 
     // Define el proveedor de autenticación

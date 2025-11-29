@@ -20,6 +20,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -95,6 +96,7 @@ public class VenueController {
                             examples = @ExampleObject(value = "{ \"message\": \"A venue with name 'New Convention Center' already exists\" }")))
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VenueResponse> create(@Validated(ValidationGroups.OnCreate.class) @RequestBody VenueRequest request) {
         // ... Lógica de creación
         VenueModel modelToCreate = venueMapper.toVenueModel(request);
@@ -121,6 +123,7 @@ public class VenueController {
                             examples = @ExampleObject(value = "{ \"message\": \"Venue not found with ID: 99\" }")))
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<VenueResponse> getById(@PathVariable Long id) {
         // ... Lógica de lectura
         VenueModel model = getVenueUseCase.getById(id);
@@ -143,6 +146,7 @@ public class VenueController {
     @Parameter(name = "size", description = "Número de registros por página", example = "10")
     @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "name,asc")
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<VenueResponse>> getAll(Pageable pageable) {
         Page<VenueModel> modelsPage = getAllVenuesUseCase.getAll(pageable);
 
@@ -174,6 +178,7 @@ public class VenueController {
                             examples = @ExampleObject(value = "{ \"message\": \"A venue with name 'Other Venue Name' already exists.\" }")))
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<VenueResponse> update(
             @PathVariable Long id,
             @Validated(ValidationGroups.OnUpdate.class) @RequestBody VenueRequest request) {
@@ -192,6 +197,7 @@ public class VenueController {
                             examples = @ExampleObject(value = "{ \"message\": \"Venue not found with ID: 99\" }")))
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         // ... Lógica de eliminación
         deleteVenueUseCase.delete(id);

@@ -9,6 +9,7 @@ import com.events_cav.events_venues.infrastructure.adapters.output.jpa.mapper.Ev
 // Importaciones para Grupos de Validación
 import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnCreate;
 import com.events_cav.events_venues.infrastructure.adapters.input.web.validation.groups.ValidationGroups.OnUpdate;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 
 import io.swagger.v3.oas.annotations.Parameter;
@@ -93,6 +94,7 @@ public class EventController {
                             examples = @ExampleObject(value = "{ \"message\": \"An event with name 'Rock Festival 2026' already exists\" }")))
     })
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventResponse> create(@Validated({OnCreate.class}) @RequestBody EventRequest request) { // 👈 Uso de Grupo de Validación
         // Lógica de creación
         EventModel modelToCreate = eventMapper.toEventModel(request);
@@ -125,6 +127,7 @@ public class EventController {
                             examples = @ExampleObject(value = "{ \"message\": \"Event not found with ID: 99\" }")))
     })
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<EventResponse> getById(@PathVariable Long id) {
         // Lógica de lectura
         EventModel model = getEventUseCase.getById(id);
@@ -142,6 +145,7 @@ public class EventController {
     @Parameter(name = "sort", description = "Criterio de ordenamiento: campo,(asc|desc). Ejemplo: name,asc", example = "dateStart,desc")
     @Parameter(name = "dateStart", description = "Fecha de inicio del rango (opcional, formato YYYY-MM-DD)", example = "2025-01-01")
     @Parameter(name = "dateEnd", description = "Fecha de fin del rango (opcional, formato YYYY-MM-DD)", example = "2025-12-31")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<EventResponse>> getAll(
             Pageable pageable,
             @RequestParam(required = false) String city,
@@ -174,6 +178,7 @@ public class EventController {
             @ApiResponse(responseCode = "409", description = "Duplicate name (Conflict)")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventResponse> update(
             @PathVariable Long id,
             @Validated({OnUpdate.class}) @RequestBody EventRequest request) { // Uso de Grupo de Validación
@@ -192,6 +197,7 @@ public class EventController {
                             examples = @ExampleObject(value = "{ \"message\": \"Event not found with ID: 99\" }")))
     })
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         // Lógica de eliminación
         deleteEventUseCase.delete(id);

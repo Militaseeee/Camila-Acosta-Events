@@ -16,3 +16,12 @@ CREATE TABLE events (
     date DATE NOT NULL,
     id_venue BIGINT --  llave foranea
 );
+
+-- Creación de la tabla USERS (Requerida para la Tarea 3: Seguridad JWT)
+CREATE TABLE users (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    -- Almacenará el rol como texto (ADMIN o USER)
+    role VARCHAR(50) NOT NULL
+);
