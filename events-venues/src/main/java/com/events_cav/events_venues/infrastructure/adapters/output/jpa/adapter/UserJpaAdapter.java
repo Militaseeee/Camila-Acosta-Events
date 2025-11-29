@@ -41,5 +41,9 @@ public class UserJpaAdapter implements UserRepositoryPort {
                 .map(userPersistenceMapper::toUserModel);
     }
 
-    // ... otros métodos del puerto que necesites (findById, existsByUsername, etc.) ...
+    @Override
+    public boolean existsByUsername(String username) {
+        // Delegar la llamada al repositorio de JPA
+        return dataUserRepository.existsByUsername(username);
+    }
 }

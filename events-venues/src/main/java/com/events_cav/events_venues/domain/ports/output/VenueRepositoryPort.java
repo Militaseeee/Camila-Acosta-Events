@@ -17,4 +17,6 @@ public interface VenueRepositoryPort {
 
     boolean existsByName(String name);
     boolean existsByNameAndIdNot(String name, Long id);
+
+    Optional<VenueModel> findByName(String name);
 }

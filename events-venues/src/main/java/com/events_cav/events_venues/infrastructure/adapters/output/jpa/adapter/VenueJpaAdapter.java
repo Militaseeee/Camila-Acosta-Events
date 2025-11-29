@@ -64,4 +64,9 @@ public class VenueJpaAdapter implements VenueRepositoryPort {
     public boolean existsByNameAndIdNot(String name, Long id) {
         return jpaRepository.existsByNameAndIdNot(name, id);
     }
+
+    @Override
+    public Optional<VenueModel> findByName(String name) {
+        return jpaRepository.findByName(name).map(venueMapper::toVenueModel);
+    }
 }

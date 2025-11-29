@@ -1,5 +1,6 @@
 package com.events_cav.events_venues.application.usecase.user;
 
+import com.events_cav.events_venues.domain.exception.ResourceConflictException;
 import com.events_cav.events_venues.domain.model.UserModel;
 import com.events_cav.events_venues.domain.model.user.UserLoginCommand;
 import com.events_cav.events_venues.domain.model.user.UserRegisterCommand;
@@ -26,6 +27,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void register(UserRegisterCommand command) {
+
+        if (userRepositoryPort.existsByUsername(command.username())) {
+            throw new ResourceConflictException("User with username '" + command.username() + "' already exists");
+        }
+
         UserModel newUser = new UserModel();
         newUser.setUsername(command.username());
         newUser.setRole(command.role());

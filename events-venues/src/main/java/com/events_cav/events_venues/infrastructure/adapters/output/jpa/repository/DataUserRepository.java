@@ -7,4 +7,6 @@ import java.util.Optional;
 public interface DataUserRepository extends JpaRepository<UserEntity, Long> {
     // Metodo para buscar por username, requerido por Spring Security
     Optional<UserEntity> findByUsername(String username);
+
+    boolean existsByUsername(String username);
 }
