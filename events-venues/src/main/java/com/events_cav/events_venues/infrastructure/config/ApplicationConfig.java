@@ -27,7 +27,7 @@ public class ApplicationConfig {
     public UserDetailsService userDetailsService() {
         return username -> userRepositoryPort.findByUsername(username)
                 .map(CustomUserDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     // Define el proveedor de autenticación

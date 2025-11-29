@@ -17,6 +17,10 @@ Interactive API documentation is automatically generated using **OpenAPI (Swagge
     - **Optional filters** by `city` and `date` via URL parameters.
 - **Task 4: Global Error Handling**: Custom exceptions captured via `@ControllerAdvice`.
     - Returns meaningful HTTP status codes: **404 (Not Found), 400 (Bad Request), 409 (Conflict)** (Recommended for duplicates).
+- **Task 5: Security (JWT Authentication)**:
+  - Implementation of Login `(/auth/login)` and Registration `(/auth/register)`.
+  - Generación de JSON Web Tokens `(JWT)` para autenticación stateless. 
+  - Detailed role-based access control `(ADMIN / USER)` using @PreAuthorize in the controllers.
 - **Validation**: Includes JSR-303 (Jakarta Validation) for data integrity.
 - **DTOs & Mappers**: Efficient object transformation using **MapStruct**.
 - **Interactive Documentation**: Fully browsable API with Swagger UI.
@@ -101,7 +105,7 @@ Once the application is running, you can explore and test every endpoint using:
 | PUT    | `/events/{id}` | Update an event             | 200, 400, 404, 409 |
 | DELETE | `/events/{id}` | Delete an event             | 204, 404     |
 
-#### Paginación y Filtros de Events (`GET /events`)
+#### Pagination and Event Filters (`GET /events`)
 
 | Query Parameter | Tipo | Descripción | Ejemplo |
 |---|---|---|---|
@@ -112,17 +116,29 @@ Once the application is running, you can explore and test every endpoint using:
 | `date` | Date | Filtra eventos por fecha exacta | `date=2026-05-20` |
 
 ---
+
+### 👤 Auth (Autenticación JWT)
+
+| Method | Endpoint       | Description                 | Status Codes |
+|--------|----------------|-----------------------------|----------|
+| POST   | `/auth/register` | Register a new user (ADMIN or USER) | 201, 400, 409 |
+| POST    | `/auth/login` | Authenticates a user and returns the JWT | 200, 401 |
+
+---
 ## 🏆 Completed Features (HU3, HU4 & Advanced HU)
 
 ## ✔ Architecture Improvements
+
 - Fully implemented **Hexagonal Architecture** (Domain – Application – Adapters).
-- Domain layer completely decoupled from Spring/JPA.
-- Controllers and Persistence are adapters connected via input/output ports.
-- Separation of:
+- **Full Domain Independence**: The Domain code (Models, Commands) has no dependency on external frameworks (Spring, JPA, JWT, etc.), ensuring the portability and purity of the business core.
+- **Data Exchange Patterns**: Use of **Records (Commands)** and **DTOs** specifically designed for input flow (Web/Controller) and business logic (Use Cases).
+- Controllers and Persistence act as adapters connected through input/output ports.
+
+- Clear separation of:
     - DTOs
     - Entities
-    - Domain models
-    - Use cases
+    - Domain Models
+    - Use Cases
     - Ports & Adapters
 
 ---
@@ -202,6 +218,20 @@ Implemented centralized exception handling with:
 - **400** – Validation errors (@Valid)
 
 Using a clean `GlobalExceptionHandler` via `@ControllerAdvice`.
+
+---
+
+## ✔ Authentication and Authorization (JWT)
+
+- **Clean Architecture**: The Domain model (`UserModel`) is decoupled from Spring Security by using the **Adapter Pattern** (`CustomUserDetails`) in the Infrastructure layer.
+
+- **Full Security Flow**: Implementation of `JwtAuthenticationFilter`, `JwtService`, and `AuthenticationManager` for token validation and generation.
+
+- **Secure Key**: Use of a JWT secret key with a minimum size of **256 bits** (Base64) to ensure strong security standards (resolved `WeakKeyException`).
+
+- **Declarative Access Control**: Use of `@PreAuthorize("hasRole('ADMIN')")` to restrict critical operations (Create, Update, Delete) in `EventController` and `VenueController`.
+
+- **Public Endpoints**: Login and Register routes exposed through `permitAll()` in `SecurityConfig.java`.
 
 
 ---
